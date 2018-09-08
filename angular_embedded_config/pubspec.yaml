@@ -1,0 +1,12 @@
+name: angular_embedded_config
+author: Ethan Lafrenais
+
+publish_to: none
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
+dependencies:
+  build: ^0.12.7
+  embedded_config:
+    path: ../embedded_config

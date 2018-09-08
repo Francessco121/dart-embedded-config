@@ -1,0 +1,1 @@
+export 'package:embedded_config/embedded_config.dart';

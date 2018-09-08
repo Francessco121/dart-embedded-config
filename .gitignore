@@ -1,0 +1,8 @@
+# Local Pub files
+.dart_tool/
+.packages
+pubspec.lock
+
+# Visual Studio Code workspace files
+.vscode/
+*.code-workspace
