@@ -4,49 +4,35 @@ A super experimental Dart package for embedding configs into source code at buil
 
 > **Note:** Requires Dart 2.x, as this package takes advantage of the new build system.
 
+## Contents
+- [Usage](#usage)
+- [Injecting into Angular applications](#injecting-into-angular-applications)
+
 ## Usage
 
 ### Steps
-1. [Add the package to your pubspec](#add-the-package-to-your-pubspec)
-    - [Non-Angular Applications](#non-angular-applications)
-    - [Angular Applications](#angular-applications)
-2. [Specify your config layout in code](#specify-your-config-layout-in-code)
-3. [Specify your build-time config](#specify-your-build-time-config)
-4. [Use the embedded config](#use-the-embedded-config)
-    - [Injecting into Angular applications](#injecting-into-angular-applications)
+1. [Add the package to your pubspec](#1-add-the-package-to-your-pubspec).
+2. [Specify your config layout in code](#2-specify-your-config-layout-in-code).
+3. [Specify your build-time config](#3-specify-your-build-time-config).
+4. [Use the embedded config](#4-use-the-embedded-config).
 
-### Add the package to your pubspec
+### 1. Add the package to your pubspec
 
-> **Note:** Currently this is not a hosted package, but can be added as a local path dependency.
-
-#### Non-Angular Applications
+> **Note:** Currently this package is not hosted on pub.
 
 Add the embedded_config package to your pubspec:
 ```yaml
 dependencies:
   embedded_config:
-    path: /path/to/dart-embedded-config/embedded_config
+    git: https://github.com/Francessco121/dart-embedded-config.git
+    ref: <insert latest commit ID> # Optional but recommended
 ```
 
-#### Angular Applications
-
-> **Note:** This is only necessary if you plan on injecting the embedded config into your Angular application.
-> The angular_embedded_config package includes extra build configuration to specify that it must run before Angular.
-
-Add the angular_embedded_config package to your pubspec:
-```yaml
-dependencies:
-  embedded_config:
-    path: /path/to/dart-embedded-config/angular_embedded_config
-```
-
-### Specify your config layout in code
+### 2. Specify your config layout in code
 
 Example, using a file named **web_config.dart**:
 ```dart
 import 'package:embedded_config/embedded_config.dart';
-// If using the angular_embedded_config package:
-// import 'package:angular_embedded_config/angular_embedded_config.dart';
 
 @fromEmbeddedConfig
 abstract class WebConfig {
@@ -65,41 +51,37 @@ abstract class NestedConfig {
 }
 ```
 
-### Specify your build-time config
+### 3. Specify your build-time config
 In your application's `build.yaml` file, you can add values for the previously defined config:
 ```yaml
 targets:
   $default:
     builders:
       embedded_config:
-      # If using Angular, replace previous line with:
-      # angular_embedded_config:
         options:
           apiBaseUrl: '/api'
           nested:
             clientId: '------------'
 ```
 
-### Use the embedded config
+### 4. Use the embedded config
 
-At build-time, an implementation of every class annotated with `@fromEmbeddedConfig` will be generated with values hard-coded from your `build.yaml`.
+At build-time, an implementation of every class annotated with `@fromEmbeddedConfig` will be generated with values hard-coded from your `build.yaml` (or whichever build yaml the package was built with).
 
-Generated files are in the same directory as the file they were generated from following the name `<file-name>.g.dart`. For example, an embedded config implementation generated from the file `web_config.dart` would be named `web_config.g.dart`. This file can be imported like any other source file.
+Generated files are in the same directory as the file they were generated from and follow the naming pattern `<file-name>.g.dart`. For example, an embedded config implementation generated from the file `web_config.dart` would be named `web_config.g.dart`. This file can be imported like any other source file.
 
-The generated file contains a class for each annotated class following the name `$<class-name>Embedded`. For example:
+The generated file contains a class for each annotated class following the naming pattern `$<class-name>Embedded`. For example:
 ```dart
 // Assumes that 'web_config.dart' is in the same directory as the current file.
 import 'web_config.g.dart' as embedded_config;
 
 ...
 
-var config = new embedded_config.$WebConfigEmbedded();
+var config = const embedded_config.$WebConfigEmbedded();
 var clientId = config.apiBaseUrl; // Would equal '/api' from the previous example
 ```
 
-The generated class can be used as a singleton.
-
-#### Injecting into Angular applications
+## Injecting into Angular applications
 
 Assuming the config file is named `web_config.dart` and is at the root of the applications `lib` folder, the generated config could be injected into the root of the Angular application (in `main.dart`) by doing for example:
 ```dart
@@ -107,9 +89,16 @@ import 'package:app_name/web_config.dart';
 import 'package:app_name/web_config.g.dart';
 
 @GenerateInjector([
-  ClassProvider(WebConfig, useClass: embedded_config.$WebConfigEmbedded)
+  // Note: A factory provider is used because the generated config file is not
+  // guaranteed to be created before Angular's builder runs. You could get
+  // around this by using a reflective injector instead.
+  FactoryProvider(WebConfig, configFactory)
 ])
 ...
+
+WebConfig configFactory() {
+  return const embedded_config.$WebConfigEmbedded();
+}
 ```
 
-Now `WebConfig` can be injected anywhere in the Angular application with the values populated from `build.yaml`.
+Now `WebConfig` can be injected anywhere in the Angular application with the values populated from `build.yaml`!
