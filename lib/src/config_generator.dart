@@ -141,9 +141,11 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   String _getString(Map<String, dynamic> map, String key) {
+    if (map == null) return null;
+
     final dynamic value = map[key];
 
-    if (map == null || value == null) return null;
+    if (value == null) return null;
 
     if (value is String) {
       return value;
@@ -153,9 +155,11 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   List<String> _getStringList(Map<String, dynamic> map, String key) {
+    if (map == null) return null;
+
     final dynamic value = map[key];
 
-    if (map == null || value == null) return null;
+    if (value == null) return null;
 
     if (value is List) {
       for (final value in value) {
