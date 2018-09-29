@@ -212,6 +212,6 @@ class ConfigGenerator extends source_gen.Generator {
       .replaceAll('\\', '\\\\')
       .replaceAll("'", "\\'");
 
-    return "r'$value'";
+    return "'$value'";
   }
 }
