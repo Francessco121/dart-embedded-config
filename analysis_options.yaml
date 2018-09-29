@@ -9,7 +9,6 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
-    - always_put_control_body_on_new_line
     - always_put_required_named_parameters_first
     - always_require_non_null_named_parameters
     - annotate_overrides
@@ -35,7 +34,6 @@ linter:
     - await_only_futures
     - camel_case_types
     - cancel_subscriptions
-    - cascade_invocations
     - constant_identifier_names
     - close_sinks
     - comment_references

@@ -3,6 +3,4 @@ builders:
     import: "package:embedded_config/builder.dart"
     builder_factories: ["configBuilder"]
     build_extensions: {".dart": [".g.dart"]}
-    # Can't be root_package since that doesn't allow packages such as
-    # angular_embedded_config to disable the base functionality.
-    auto_apply: dependents
+    auto_apply: root_package
