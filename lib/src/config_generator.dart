@@ -38,6 +38,12 @@ class ConfigGenerator extends source_gen.Generator {
       }
     }
 
+    // Check if any classes were generated
+    if (classes.isEmpty) {
+      // Don't create a file if nothing was generated
+      return null;
+    }
+
     // Build library
     final String libraryName = library.element.librarySource.shortName;
 
