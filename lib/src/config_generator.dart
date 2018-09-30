@@ -123,7 +123,7 @@ class ConfigGenerator extends source_gen.Generator {
             ));
           }
         }
-      } else if (getter.returnType.element is ClassElement) {
+      } else if (getter.returnType.element.library == getter.library) {
         // Class
         final ClassElement innerClass = getter.returnType.element;
 
