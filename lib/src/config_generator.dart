@@ -11,6 +11,7 @@ import '../embedded_config.dart'
 import 'build_exception.dart';
 
 const _annotationTypeChecker = source_gen.TypeChecker.fromRuntime(FromEmbeddedConfig);
+const _boolTypeChecker = source_gen.TypeChecker.fromRuntime(bool);
 const _stringTypeChecker = source_gen.TypeChecker.fromRuntime(String);
 const _listTypeChecker = source_gen.TypeChecker.fromRuntime(List);
 
@@ -92,6 +93,17 @@ class ConfigGenerator extends source_gen.Generator {
           ..name = getter.name
           ..assignment = _codeString(value)
         ));
+      } else if (_boolTypeChecker.isExactlyType(getter.returnType)) {
+        // Boolean
+        final bool value = _getBool(currentMap, getter.name);
+
+        fields.add(Field((f) => f
+          ..annotations.add(refer('override'))
+          ..modifier = FieldModifier.final$
+          ..type = refer('bool')
+          ..name = getter.name
+          ..assignment = _codeBool(value)
+        ));
       } else if (_listTypeChecker.isAssignableFromType(getter.returnType)) {
         // List
         if (getter.returnType is ParameterizedType) {
@@ -146,6 +158,22 @@ class ConfigGenerator extends source_gen.Generator {
     );
   }
 
+  bool _getBool(Map<String, dynamic> map, String key) {
+    // ignore: avoid_returning_null
+    if (map == null) return null;
+
+    final dynamic value = map[key];
+
+    // ignore: avoid_returning_null
+    if (value == null) return null;
+
+    if (value is bool) {
+      return value;
+    } else {
+      throw new BuildException("Option '$key' must be a boolean.");
+    }
+  }
+
   String _getString(Map<String, dynamic> map, String key) {
     if (map == null) return null;
 
@@ -178,6 +206,12 @@ class ConfigGenerator extends source_gen.Generator {
     } else {
       throw new BuildException("Option '$key' must be a list.");
     }
+  }
+
+  Code _codeBool(bool value) {
+    if (value == null) return const Code('null');
+
+    return Code(value ? 'true' : 'false');
   }
 
   Code _codeString(String value) {
