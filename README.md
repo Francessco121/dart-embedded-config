@@ -7,6 +7,7 @@ A super experimental Dart package for embedding configs into source code at buil
 ## Contents
 - [Usage](#usage)
 - [Injecting into Angular applications](#injecting-into-angular-applications)
+- [Usage with Flutter](#usage-with-flutter)
 
 ## Usage
 
@@ -102,3 +103,21 @@ WebConfig configFactory() {
 ```
 
 Now `WebConfig` can be injected anywhere in the Angular application with the values populated from `build.yaml`!
+
+## Usage with Flutter
+
+Flutter currently has limited support for `build_runner`. By default, the `embedded_config` builder builds the generated files to the Dart cache (`.dart_tool`). Flutter builds are unable to reference files in this folder. To get around this, use the `embedded_config_to_source` builder. This will cause the generated files to be placed with the source code instead of `.dart_tool`.
+
+This can be achieved by enabling `embedded_config_to_source` in `build.yaml` and disabling `embedded_config`:
+
+```yaml
+targets:
+  $default:
+    builders:
+      embedded_config:
+        enabled: false
+      embedded_config|embedded_config_to_source:
+        enabled: true
+        options:
+          # Options go here instead
+```
