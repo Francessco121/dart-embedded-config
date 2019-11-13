@@ -54,7 +54,6 @@ linter:
     - only_throw_errors
     - overridden_fields
     - package_names
-    - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_const_constructors
     - prefer_const_constructors_in_immutables

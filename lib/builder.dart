@@ -6,6 +6,6 @@ import 'src/config_generator.dart';
 Builder configBuilder(BuilderOptions options) {
   return new LibraryBuilder(
     ConfigGenerator(options.config),
-    generatedExtension: '.g.dart'
+    generatedExtension: '.embedded.dart'
   );
 }

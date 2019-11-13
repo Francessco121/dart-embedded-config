@@ -69,12 +69,12 @@ targets:
 
 At build-time, an implementation of every class annotated with `@fromEmbeddedConfig` will be generated with values hard-coded from your `build.yaml` (or whichever build yaml the package was built with).
 
-Generated files are in the same directory as the file they were generated from and follow the naming pattern `<file-name>.g.dart`. For example, an embedded config implementation generated from the file `web_config.dart` would be named `web_config.g.dart`. This file can be imported like any other source file.
+Generated files are in the same directory as the file they were generated from and follow the naming pattern `<file-name>.embedded.dart`. For example, an embedded config implementation generated from the file `web_config.dart` would be named `web_config.embedded.dart`. This file can be imported like any other source file.
 
 The generated file contains a class for each annotated class following the naming pattern `$<class-name>Embedded`. For example:
 ```dart
 // Assumes that 'web_config.dart' is in the same directory as the current file.
-import 'web_config.g.dart' as embedded_config;
+import 'web_config.embedded.dart' as embedded_config;
 
 ...
 
@@ -87,7 +87,7 @@ var clientId = config.apiBaseUrl; // Would equal '/api' from the previous exampl
 Assuming the config file is named `web_config.dart` and is at the root of the applications `lib` folder, the generated config could be injected into the root of the Angular application (in `main.dart`) by doing for example:
 ```dart
 import 'package:app_name/web_config.dart';
-import 'package:app_name/web_config.g.dart';
+import 'package:app_name/web_config.embedded.dart';
 
 @GenerateInjector([
   // Note: A factory provider is used because the generated config file is not
