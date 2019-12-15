@@ -8,8 +8,5 @@ class BuildException implements Exception {
   BuildException(this.message, [this.element]);
 
   @override
-  String toString() {
-    // TODO: Display file, line, and column of the element
-    return message;
-  }
+  String toString() => '[${element.displayName}] $message';
 }

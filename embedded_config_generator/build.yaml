@@ -1,0 +1,7 @@
+builders:
+  embedded_config:
+    import: "package:embedded_config_generator/builder.dart"
+    builder_factories: ["configBuilder"]
+    build_extensions: {".dart": [".embedded.dart"]}
+    build_to: source
+    auto_apply: root_package

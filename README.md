@@ -1,4 +1,4 @@
-# dart-embedded-config
+# embedded_config
 
 A super experimental Dart package for embedding configs into source code at build time.
 
@@ -7,7 +7,6 @@ A super experimental Dart package for embedding configs into source code at buil
 ## Contents
 - [Usage](#usage)
 - [Injecting into Angular applications](#injecting-into-angular-applications)
-- [Usage with Flutter](#usage-with-flutter)
 
 ## Usage
 
@@ -21,12 +20,21 @@ A super experimental Dart package for embedding configs into source code at buil
 
 > **Note:** Currently this package is not hosted on pub.
 
-Add the embedded_config package to your pubspec:
+Add the embedded_config and embedded_config_generator packages to your pubspec:
 ```yaml
 dependencies:
   embedded_config:
-    git: https://github.com/Francessco121/dart-embedded-config.git
-    ref: <insert latest commit ID> # Optional but recommended
+    git: 
+      url: https://github.com/Francessco121/dart-embedded-config.git
+      path: embedded_config
+      ref: <insert latest commit ID> # Optional but recommended
+
+dev_dependencies:
+  embedded_config_generator:
+    git: 
+      url: https://github.com/Francessco121/dart-embedded-config.git
+      path: embedded_config_generator
+      ref: <insert latest commit ID> # Optional but recommended
 ```
 
 ### 2. Specify your config layout in code
@@ -103,21 +111,3 @@ WebConfig configFactory() {
 ```
 
 Now `WebConfig` can be injected anywhere in the Angular application with the values populated from `build.yaml`!
-
-## Usage with Flutter
-
-Flutter currently has limited support for `build_runner`. By default, the `embedded_config` builder builds the generated files to the Dart cache (`.dart_tool`). Flutter builds are unable to reference files in this folder. To get around this, use the `embedded_config_to_source` builder. This will cause the generated files to be placed with the source code instead of `.dart_tool`.
-
-This can be achieved by enabling `embedded_config_to_source` in `build.yaml` and disabling `embedded_config`:
-
-```yaml
-targets:
-  $default:
-    builders:
-      embedded_config:
-        enabled: false
-      embedded_config|embedded_config_to_source:
-        enabled: true
-        options:
-          # Options go here instead
-```
