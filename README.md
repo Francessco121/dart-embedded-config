@@ -23,17 +23,17 @@ A super experimental Dart package for embedding configs into source code at buil
 Add the embedded_config and embedded_config_generator packages to your pubspec:
 ```yaml
 dependencies:
+  embedded_config_annotations:
+    git: 
+      url: https://github.com/Francessco121/dart-embedded-config.git
+      path: embedded_config_annotations
+      ref: <insert latest commit ID> # Optional but recommended
+
+dev_dependencies:
   embedded_config:
     git: 
       url: https://github.com/Francessco121/dart-embedded-config.git
       path: embedded_config
-      ref: <insert latest commit ID> # Optional but recommended
-
-dev_dependencies:
-  embedded_config_generator:
-    git: 
-      url: https://github.com/Francessco121/dart-embedded-config.git
-      path: embedded_config_generator
       ref: <insert latest commit ID> # Optional but recommended
 ```
 
@@ -41,7 +41,7 @@ dev_dependencies:
 
 Example, using a file named **web_config.dart**:
 ```dart
-import 'package:embedded_config/embedded_config.dart';
+import 'package:embedded_config_annotations/embedded_config_annotations.dart';
 
 @fromEmbeddedConfig
 abstract class WebConfig {

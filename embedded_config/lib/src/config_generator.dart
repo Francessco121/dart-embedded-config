@@ -4,7 +4,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
-import 'package:embedded_config/embedded_config.dart';
+import 'package:embedded_config_annotations/embedded_config_annotations.dart';
 import 'package:source_gen/source_gen.dart' as source_gen;
 
 import 'build_exception.dart';
