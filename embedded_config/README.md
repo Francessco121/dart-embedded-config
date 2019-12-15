@@ -195,7 +195,7 @@ For example, to embed the following configuration:
 }
 ```
 
-You would need to create two annotated classes:
+You would need to create three annotated classes:
 ```dart
 import 'package:embedded_config_annotations/embedded_config_annotations.dart';
 
