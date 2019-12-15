@@ -1,4 +1,10 @@
 name: embedded_config
+description: >
+  A package which allows application configurations to be embedded directly 
+  into source code at build-time. Configuration can come from JSON files, 
+  environment variables, and build.yaml files.
+version: 0.1.0
+homepage: https://github.com/Francessco121/dart-embedded-config
 
 environment:
   sdk: '>=2.0.0 <3.0.0'

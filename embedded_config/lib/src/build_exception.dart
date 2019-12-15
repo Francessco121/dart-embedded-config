@@ -8,5 +8,5 @@ class BuildException implements Exception {
   BuildException(this.message, [this.element]);
 
   @override
-  String toString() => '[${element.displayName}] $message';
+  String toString() => element == null ? message : '[${element.displayName}] $message';
 }
