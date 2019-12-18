@@ -53,6 +53,20 @@ abstract class AppConfig {
 }
 ```
 
+Getter return types can be any of the following:
+- `String`
+- `int`
+- `double`
+- `num`
+- `bool`
+- `List` (or `List<T>`)
+- `Map` (or `Map<K, V>`)
+- [Other annotated embedded config classes in the same library](#complex-configuration-models)
+
+> **Note:** When the element type of a list is explicitly `String` or the value type of a map is explicitly `String`, values from config sources will automatically be converted to strings.
+>
+> Example: A getter of `List<String>` given the config value of `[24]` will get an embedded value of `["24"]`.
+
 ### 3. Map configuration source(s)
 
 Next, we need the actual configuration. Configuration can be specified in two places: JSON files in your application package and build.yaml files. Both of these sources can additionally make use of environment variables.
