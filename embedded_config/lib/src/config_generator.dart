@@ -84,13 +84,7 @@ class ConfigGenerator extends source_gen.Generator {
     }
 
     // Build library
-    final String libraryName = library.element.librarySource.shortName;
-
     final libraryAst = Library((l) => l
-      ..directives.add(Directive((d) => d
-        ..type = DirectiveType.import
-        ..url = libraryName
-      ))
       ..body.addAll(classes)
     );
 
@@ -474,6 +468,6 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   String _generatedClassNameOf(String className) {
-    return '\$${className}Embedded';
+    return '_\$${className}Embedded';
   }
 }

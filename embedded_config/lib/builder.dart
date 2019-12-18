@@ -4,8 +4,8 @@ import 'package:source_gen/source_gen.dart';
 import 'src/config_generator.dart';
 
 Builder configBuilder(BuilderOptions options) {
-  return new LibraryBuilder(
-    ConfigGenerator(options.config),
-    generatedExtension: '.embedded.dart'
+  return new PartBuilder(
+    [ConfigGenerator(options.config)], 
+    '.embedded.dart'
   );
 }

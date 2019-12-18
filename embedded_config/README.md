@@ -42,6 +42,9 @@ Create an abstract class annotated with `@EmbeddedConfig`. This class must also 
 
 import 'package:embedded_config_annotations/embedded_config_annotations.dart';
 
+// Add the generated file as a part
+part 'app_config.embedded.dart';
+
 @EmbeddedConfig('app_config')
 abstract class AppConfig {
   String get apiUrl;
@@ -88,24 +91,27 @@ When the application package is then built using the build.yaml file configuring
 
 The contents of the generated file in this case would look like:
 ```dart
-import 'app_config.dart';
+part of 'app_config.dart';
 
-class $AppConfigEmbedded extends AppConfig {
-  const $AppConfigEmbedded();
+class _$AppConfigEmbedded extends AppConfig {
+  const _$AppConfigEmbedded();
 
   @override
   final apiUrl = '/api';
 }
 ```
 
-Your application can then instantiate this generated class anywhere:
+The annotated `AppConfig` class can then expose the generated class in any way you choose. Since embedded configs are marked with `const` constructors, one nice way is to expose it as a `static const` singleton value:
 
 ```dart
-import 'app_config.dart';
-import 'app_config.embedded.dart';
+// ...
 
-// Works great with dependency injection!
-AppConfig config = new $AppConfigEmbedded();
+@EmbeddedConfig('app_config')
+abstract class AppConfig {
+  static const AppConfig instance = _$AppConfigEmbedded();
+
+  // ...
+}
 ```
 
 ## Merging configuration
@@ -225,7 +231,7 @@ abstract class AppSub2Config {
 
 The `path` property can also be used outside of this use-case and does not require a 'parent' class to also be defined.
 
-> **Note:** Currently, any annotated classes which reference each other must be declared in the same Dart library.
+> **Note:** Any annotated classes which reference each other must be declared in the same Dart library.
 
 ## Environment variables
 
