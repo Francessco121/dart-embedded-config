@@ -229,7 +229,9 @@ The `path` property can also be used outside of this use-case and does not requi
 
 ## Environment variables
 
-Environment variables can be substituted for any **string value** in the configuration. This is done (only) by having the value start with `$`, for example: `$BUILD_ID` would be substituted with the environment variable `BUILD_ID`. If you have a configuration value which starts with `$` but is not intended to be an environment variable, you can escape it with `\`.
+Environment variables can be substituted for any **string value** in the configuration. This is done (only) by having the value start with `$`, for example: `$BUILD_ID` would be substituted with the environment variable `BUILD_ID`. 
+
+If you have a configuration value which starts with `$` but is not intended to be an environment variable, you can escape it with another `$`. This also means that every starting `$` character after the first will have one removed to account for the character escaping. For example, to get the literal value of `$$BUILD_ID` you would write `$$$BUILD_ID`, to get a literal value of `$$$BUILD_ID` you would write `$$$$BUILD_ID` and so on. This only affects `$` characters **at the start** of the value, if any other character is the first character in the string value, then none of the environment variable or escaping rules take effect.
 
 For example, if you wanted to embed a build identifier from CI into your application:
 

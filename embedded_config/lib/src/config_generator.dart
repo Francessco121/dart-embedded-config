@@ -312,13 +312,15 @@ class ConfigGenerator extends source_gen.Generator {
   /// the environment variable with the name specified by the remaining
   /// characters in [string] after the `$` will be returned.
   /// 
-  /// If [string] starts with `\$` then the `$` will be treated as
-  /// an escaped character and the `\` will be removed.
+  /// If [string] starts with `$$` then the `$` will be treated as
+  /// an escaped character and the first `$` will be removed. This also
+  /// means that for every `$` starting character after the first, one
+  /// will always be removed to account for the escaping.
   String _checkEnvironmentVariable(String string) {
-    if (string.startsWith(r'$')) {
-      return Platform.environment[string.substring(1)];
-    } else if (string.startsWith(r'\$')) {
+    if (string.startsWith(r'$$')) {
       return string.substring(1);
+    } else if (string.startsWith(r'$')) {
+      return Platform.environment[string.substring(1)];
     } else {
       return string;
     }
