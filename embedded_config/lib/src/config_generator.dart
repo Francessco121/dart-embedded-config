@@ -374,7 +374,7 @@ class ConfigGenerator extends source_gen.Generator {
 
   String _makeLiteral(dynamic value) {
     if (value is String) {
-      return _checkEnvironmentVariable(_makeStringLiteral(value));
+      return _makeStringLiteral(_checkEnvironmentVariable(value));
     } else if (value is bool) {
       return _makeBoolLiteral(value);
     } else if (value is List) {
@@ -391,10 +391,12 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   String _makeStringLiteral(String value) {
-    value = value
-      .replaceAll('\\', '\\\\')
-      .replaceAll("'", "\\'")
-      .replaceAll(r'$', '\\\$');
+    if (value != null) {
+      value = value
+        .replaceAll('\\', '\\\\')
+        .replaceAll("'", "\\'")
+        .replaceAll(r'$', '\\\$');
+    }
 
     return "'$value'";
   }
@@ -411,7 +413,7 @@ class ConfigGenerator extends source_gen.Generator {
       final element = value[i];
 
       if (element is String) {
-        buffer.write(_checkEnvironmentVariable(_makeStringLiteral(element)));
+        buffer.write(_makeStringLiteral(_checkEnvironmentVariable(element)));
       } else {
         if (forceStrings) {
           buffer.write(_makeStringLiteral(element.toString()));
@@ -442,7 +444,7 @@ class ConfigGenerator extends source_gen.Generator {
       final value = entry.value;
 
       if (value is String) {
-        buffer.write(_checkEnvironmentVariable(_makeStringLiteral(value)));
+        buffer.write(_makeStringLiteral(_checkEnvironmentVariable(value)));
       } else {
         if (forceStrings && value is! List && value is! Map) {
           buffer.write(_makeStringLiteral(value.toString()));
