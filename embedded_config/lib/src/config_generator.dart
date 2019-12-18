@@ -15,6 +15,7 @@ import 'key_config.dart';
 const _classAnnotationTypeChecker = source_gen.TypeChecker.fromRuntime(EmbeddedConfig);
 const _stringTypeChecker = source_gen.TypeChecker.fromRuntime(String);
 const _listTypeChecker = source_gen.TypeChecker.fromRuntime(List);
+const _mapTypeChecker = source_gen.TypeChecker.fromRuntime(Map);
 
 class _AnnotatedClass {
   final ClassElement element;
@@ -217,22 +218,44 @@ class ConfigGenerator extends source_gen.Generator {
           ));
         } else if (_listTypeChecker.isAssignableFromType(getter.returnType)) {
           // List
+          bool forceStrings = false;
+
           if (getter.returnType is ParameterizedType) {
             final ParameterizedType type = getter.returnType;
 
-            final String value = _getList(config, getter.name, 
-              // Force all values to strings if this is a List<String>
-              forceStrings: type.typeArguments.isNotEmpty 
-                && _stringTypeChecker.isExactlyType(type.typeArguments.first)
-            );
-
-            fields.add(Field((f) => f
-              ..annotations.add(refer('override'))
-              ..modifier = FieldModifier.final$
-              ..name = getter.name
-              ..assignment = _codeLiteral(value)
-            ));
+            // Force all values to strings if this is a List<String>
+            forceStrings = type.typeArguments.isNotEmpty 
+              && _stringTypeChecker.isExactlyType(type.typeArguments.first);
           }
+
+          final String value = _getList(config, getter.name, forceStrings: forceStrings);
+
+          fields.add(Field((f) => f
+            ..annotations.add(refer('override'))
+            ..modifier = FieldModifier.final$
+            ..name = getter.name
+            ..assignment = _codeLiteral(value)
+          ));
+        } else if (_mapTypeChecker.isAssignableFromType(getter.returnType)) {
+          // Map
+          bool forceStrings = false;
+
+          if (getter.returnType is ParameterizedType) {
+            final ParameterizedType type = getter.returnType;
+
+            // Force all values to strings if this is a Map<T, String>
+            forceStrings = type.typeArguments.length > 1 
+              && _stringTypeChecker.isExactlyType(type.typeArguments[1]);
+          }
+
+          final String value = _getMap(config, getter.name, forceStrings: forceStrings);
+
+          fields.add(Field((f) => f
+            ..annotations.add(refer('override'))
+            ..modifier = FieldModifier.final$
+            ..name = getter.name
+            ..assignment = _codeLiteral(value)
+          ));
         } else if (getter.returnType.element.library == getter.library) {
           // Class
           final ClassElement innerClass = getter.returnType.element;
@@ -321,7 +344,7 @@ class ConfigGenerator extends source_gen.Generator {
     }
   }
 
-  String _getList(Map<String, dynamic> map, String key, {bool forceStrings}) {
+  String _getList(Map<String, dynamic> map, String key, {bool forceStrings = false}) {
     if (map == null) return null;
 
     final dynamic value = map[key];
@@ -335,6 +358,20 @@ class ConfigGenerator extends source_gen.Generator {
     }
   }
 
+  String _getMap(Map<String, dynamic> map, String key, {bool forceStrings = false}) {
+    if (map == null) return null;
+
+    final dynamic value = map[key];
+
+    if (value == null) return null;
+
+    if (value is Map) {
+      return _makeMapLiteral(value, forceStrings: forceStrings);
+    } else {
+      throw new BuildException("Config value '$key' must be a map.");
+    }
+  }
+
   String _makeLiteral(dynamic value) {
     if (value is String) {
       return _checkEnvironmentVariable(_makeStringLiteral(value));
@@ -342,6 +379,8 @@ class ConfigGenerator extends source_gen.Generator {
       return _makeBoolLiteral(value);
     } else if (value is List) {
       return _makeListLiteral(value);
+    } else if (value is Map) {
+      return _makeMapLiteral(value);
     } else {
       return value.toString();
     }
@@ -360,7 +399,7 @@ class ConfigGenerator extends source_gen.Generator {
     return "'$value'";
   }
 
-  String _makeListLiteral(List value, {bool forceStrings}) {
+  String _makeListLiteral(List value, {bool forceStrings = false}) {
     final buffer = new StringBuffer();
     buffer.write('const [');
     
@@ -383,6 +422,39 @@ class ConfigGenerator extends source_gen.Generator {
     }
 
     buffer.write(']');
+
+    return buffer.toString();
+  }
+
+  String _makeMapLiteral(Map value, {bool forceStrings = false}) {
+    final buffer = new StringBuffer();
+    buffer.write('const {');
+    
+    bool first = true;
+    for (final MapEntry entry in value.entries) {
+      if (!first) {
+        buffer.write(',');
+      }
+
+      buffer.write(_makeStringLiteral(entry.key.toString()));
+      buffer.write(': ');
+
+      final value = entry.value;
+
+      if (value is String) {
+        buffer.write(_checkEnvironmentVariable(_makeStringLiteral(value)));
+      } else {
+        if (forceStrings && value is! List && value is! Map) {
+          buffer.write(_makeStringLiteral(value.toString()));
+        } else {
+          buffer.write(_makeLiteral(value));
+        }
+      }
+
+      first = false;
+    }
+
+    buffer.write('}');
 
     return buffer.toString();
   }
