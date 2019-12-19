@@ -127,7 +127,7 @@ class ConfigGenerator extends source_gen.Generator {
       throw BuildException('No embedded config defined for key: ${annotation.key}', classElement);
     }
 
-    final Map<String, dynamic> config = {};
+    Map<String, dynamic> config = {};
 
     // Apply file sources
     if (keyConfig.sources != null) {
@@ -144,17 +144,6 @@ class ConfigGenerator extends source_gen.Generator {
           throw BuildException('Embedded config file sources must be JSON documents.', classElement);
         }
 
-        // Follow path if specified
-        if (annotation.path != null) {
-          for (final String key in annotation.path.split('.')) {
-            if (_fileConfig.containsKey(key)) {
-              _fileConfig = _fileConfig[key];
-            } else {
-              throw BuildException("Could not follow path '${annotation.path}' for file at $assetId.", classElement);
-            }
-          }
-        }
-
         // Merge file into config
         _mergeMaps(config, _fileConfig);
       }
@@ -163,6 +152,20 @@ class ConfigGenerator extends source_gen.Generator {
     // Apply inline source
     if (keyConfig.inline != null) {
       _mergeMaps(config, keyConfig.inline);
+    }
+
+    // Follow path if specified
+    if (annotation.path != null) {
+      for (final String key in annotation.path.split('.')) {
+        if (config.containsKey(key)) {
+          config = config[key];
+        } else {
+          throw BuildException(
+            "Could not follow path '${annotation.path}' for config ${annotation.key}.", 
+            classElement
+          );
+        }
+      }
     }
 
     return config;

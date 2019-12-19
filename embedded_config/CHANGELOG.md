@@ -1,3 +1,6 @@
+## v0.1.2
+- Fix usage of multiple configuration sources with embedded configs mapped to specific paths not working.
+
 ## v0.1.1
 - Address a few package scoring issues including public API documentation.
 
