@@ -1,6 +1,5 @@
 # embedded_config_annotations
 
-A package which allows application configurations to be embedded directly into source code at build-time.
-Configuration can come from JSON files, environment variables, and `build.yaml` files.
+This package contains annotations for configuring code generation for the [embedded_config](https://github.com/Francessco121/dart-embedded-config/tree/master/embedded_config) package.
 
-This is the annotations package for [package:embedded_config](https://github.com/Francessco121/dart-embedded-config/tree/master/embedded_config). Please see the other package for more information.
+The embedded_config package allows application configurations to be embedded directly into source code at build-time. Please see its [README](https://github.com/Francessco121/dart-embedded-config/tree/master/embedded_config) for more information.
