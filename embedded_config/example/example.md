@@ -10,7 +10,7 @@ Assuming the config file is the following and is located at `lib/app_config.json
 }
 ```
 
-The previous file can be represented in code using the following class:
+The previous file can be represented in code using the following classes:
 ```dart
 // file: lib/app_config.dart
 
@@ -53,7 +53,7 @@ abstract class AppAuthConfig {
 }
 ```
 
-After this, the class must be mapped to at least one config source by the key defined on the class inside of any build.yaml file in the project. Use different build.yaml files (e.g. build.prod.yaml vs build.dev.yaml) to change the source of config values embedded into the application at build time. This allows you to configure your application for different environments.
+After this, the classes must be mapped to at least one config source by the key defined on each class inside of any build.yaml file in the project. Use different build.yaml files (e.g. build.prod.yaml vs build.dev.yaml) to change the source of config values embedded into the application at build time. This allows you to configure your application for different environments.
 
 ```yaml
 targets:

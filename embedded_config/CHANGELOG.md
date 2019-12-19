@@ -1,3 +1,6 @@
+## v0.1.1
+- Address a few package scoring issues including public API documentation.
+
 ## v0.1.0
 - Configuration can now be sourced from JSON files and/or inline build.yaml.
 - Build errors now specify the language element which caused the error.
