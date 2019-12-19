@@ -1,6 +1,6 @@
 builders:
   embedded_config:
-    import: "package:embedded_config/builder.dart"
+    import: "package:embedded_config/embedded_config.dart"
     builder_factories: ["configBuilder"]
     build_extensions: {".dart": [".embedded.dart"]}
     build_to: source
