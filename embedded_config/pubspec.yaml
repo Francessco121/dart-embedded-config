@@ -13,12 +13,8 @@ dependencies:
   analyzer: '>=0.32.4 <0.40.0'
   build: ^1.0.0
   code_builder: ^3.2.0
-  embedded_config_annotations: '0.1.0'
+  embedded_config_annotations: '>=0.1.0 <0.2.0'
   source_gen: ^0.9.0
 
 dev_dependencies:
   pedantic: '1.8.0'
-
-dependency_overrides:
-  embedded_config_annotations:
-    path: ../embedded_config_annotations
