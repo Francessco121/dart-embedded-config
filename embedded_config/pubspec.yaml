@@ -16,6 +16,9 @@ dependencies:
   embedded_config_annotations: '0.1.0'
   source_gen: ^0.9.0
 
+dev_dependencies:
+  pedantic: '1.8.0'
+
 dependency_overrides:
   embedded_config_annotations:
     path: ../embedded_config_annotations

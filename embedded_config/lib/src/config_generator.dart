@@ -54,7 +54,9 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Build classes
     final List<Class> classes = [];
-    final Set<String> generatedClasses = new Set<String>();
+    // Min SDK constraint doesn't support set literals, must ignore this lint unfortunately
+    // ignore: prefer_collection_literals
+    final generatedClasses = Set<String>();
 
     for (final _AnnotatedClass annotatedClass in sourceClasses) {
       // Resolve real config values
@@ -89,7 +91,7 @@ class ConfigGenerator extends source_gen.Generator {
     );
 
     // Emit source
-    final emitter = new DartEmitter(Allocator.simplePrefixing());
+    final emitter = DartEmitter(Allocator.simplePrefixing());
     
     return libraryAst.accept(emitter).toString();
   }
@@ -195,7 +197,7 @@ class ConfigGenerator extends source_gen.Generator {
 
     final List<Field> fields = [];
 
-    Iterable<PropertyAccessorElement> getters = $class.accessors
+    final Iterable<PropertyAccessorElement> getters = $class.accessors
       .where((accessor) => accessor.isGetter && !accessor.isStatic);
 
     for (PropertyAccessorElement getter in getters) {
@@ -350,7 +352,7 @@ class ConfigGenerator extends source_gen.Generator {
     if (value is List) {
       return _makeListLiteral(value, forceStrings: forceStrings);
     } else {
-      throw new BuildException("Config value '$key' must be a list.");
+      throw BuildException("Config value '$key' must be a list.");
     }
   }
 
@@ -364,7 +366,7 @@ class ConfigGenerator extends source_gen.Generator {
     if (value is Map) {
       return _makeMapLiteral(value, forceStrings: forceStrings);
     } else {
-      throw new BuildException("Config value '$key' must be a map.");
+      throw BuildException("Config value '$key' must be a map.");
     }
   }
 
@@ -398,7 +400,7 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   String _makeListLiteral(List value, {bool forceStrings = false}) {
-    final buffer = new StringBuffer();
+    final buffer = StringBuffer();
     buffer.write('const [');
     
     for (int i = 0; i < value.length; i++) {
@@ -425,7 +427,7 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   String _makeMapLiteral(Map value, {bool forceStrings = false}) {
-    final buffer = new StringBuffer();
+    final buffer = StringBuffer();
     buffer.write('const {');
     
     bool first = true;
