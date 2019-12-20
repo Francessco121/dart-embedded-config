@@ -34,7 +34,7 @@ class ConfigGenerator extends source_gen.Generator {
   @override
   FutureOr<String> generate(source_gen.LibraryReader library, BuildStep buildStep) async {
     // Get annotated classes
-    final List<_AnnotatedClass> sourceClasses = [];
+    final sourceClasses = <_AnnotatedClass>[];
     
     for (final annotatedElement in library.annotatedWith(_classAnnotationTypeChecker)) {
       final classElement = annotatedElement.element;
@@ -53,26 +53,25 @@ class ConfigGenerator extends source_gen.Generator {
     }
 
     // Build classes
-    final List<Class> classes = [];
+    final classes = <Class>[];
     // Min SDK constraint doesn't support set literals, must ignore this lint unfortunately
     // ignore: prefer_collection_literals
     final generatedClasses = Set<String>();
 
-    for (final _AnnotatedClass annotatedClass in sourceClasses) {
+    for (final annotatedClass in sourceClasses) {
       // Resolve real config values
       if (annotatedClass.annotation.key == null) {
         throw BuildException('Embedded config key cannot be null.', annotatedClass.element);
       }
 
-      final Map<String, dynamic> config = 
-        await _resolveConfig(buildStep, annotatedClass.element, annotatedClass.annotation);
+      final config = await _resolveConfig(buildStep, annotatedClass.element, annotatedClass.annotation);
 
       if (config == null) {
         throw BuildException('Could not resolve config source.', annotatedClass.element);
       }
 
       // Generate class
-      final Class $class = _generateClass(annotatedClass.element, config, sourceClasses, generatedClasses);
+      final $class = _generateClass(annotatedClass.element, config, sourceClasses, generatedClasses);
       
       if ($class != null) {
         classes.add($class);
@@ -121,31 +120,31 @@ class ConfigGenerator extends source_gen.Generator {
     EmbeddedConfig annotation
   ) async {
     // Get the key config
-    final KeyConfig keyConfig = _keys[annotation.key];
+    final keyConfig = _keys[annotation.key];
 
     if (keyConfig == null) {
       throw BuildException('No embedded config defined for key: ${annotation.key}', classElement);
     }
 
-    Map<String, dynamic> config = {};
+    var config = <String, dynamic>{};
 
     // Apply file sources
     if (keyConfig.sources != null) {
-      for (final String filePath in keyConfig.sources) {
+      for (final filePath in keyConfig.sources) {
         // Read file
         final assetId = AssetId(buildStep.inputId.package, filePath);
-        final String assetContents = await buildStep.readAsString(assetId);
+        final assetContents = await buildStep.readAsString(assetId);
 
-        Map<String, dynamic> _fileConfig;
+        Map<String, dynamic> fileConfig;
 
         if (filePath.trimRight().endsWith('.json')) {
-          _fileConfig = json.decode(assetContents);
+          fileConfig = json.decode(assetContents);
         } else {
           throw BuildException('Embedded config file sources must be JSON documents.', classElement);
         }
 
         // Merge file into config
-        _mergeMaps(config, _fileConfig);
+        _mergeMaps(config, fileConfig);
       }
     }
 
@@ -156,7 +155,7 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Follow path if specified
     if (annotation.path != null) {
-      for (final String key in annotation.path.split('.')) {
+      for (final key in annotation.path.split('.')) {
         if (config.containsKey(key)) {
           config = config[key];
         } else {
@@ -198,89 +197,15 @@ class ConfigGenerator extends source_gen.Generator {
 
     generatedClasses.add($class.name);
 
-    final List<Field> fields = [];
+    // Generate field overrides for each non-static abstract getter
+    final fields = <Field>[];
 
-    final Iterable<PropertyAccessorElement> getters = $class.accessors
+    final getters = $class.accessors
       .where((accessor) => accessor.isGetter && !accessor.isStatic && accessor.isAbstract);
 
-    for (PropertyAccessorElement getter in getters) {
+    for (final getter in getters) {
       try {
-        if (_stringTypeChecker.isExactlyType(getter.returnType)) {
-          // String
-          final String value = _getString(config, getter.name);
-
-          fields.add(Field((f) => f
-            ..annotations.add(refer('override'))
-            ..modifier = FieldModifier.final$
-            ..name = getter.name
-            ..assignment = _codeLiteral(value)
-          ));
-        } else if (_listTypeChecker.isAssignableFromType(getter.returnType)) {
-          // List
-          bool forceStrings = false;
-
-          if (getter.returnType is ParameterizedType) {
-            final ParameterizedType type = getter.returnType;
-
-            // Force all values to strings if this is a List<String>
-            forceStrings = type.typeArguments.isNotEmpty 
-              && _stringTypeChecker.isExactlyType(type.typeArguments.first);
-          }
-
-          final String value = _getList(config, getter.name, forceStrings: forceStrings);
-
-          fields.add(Field((f) => f
-            ..annotations.add(refer('override'))
-            ..modifier = FieldModifier.final$
-            ..name = getter.name
-            ..assignment = _codeLiteral(value)
-          ));
-        } else if (_mapTypeChecker.isAssignableFromType(getter.returnType)) {
-          // Map
-          bool forceStrings = false;
-
-          if (getter.returnType is ParameterizedType) {
-            final ParameterizedType type = getter.returnType;
-
-            // Force all values to strings if this is a Map<T, String>
-            forceStrings = type.typeArguments.length > 1 
-              && _stringTypeChecker.isExactlyType(type.typeArguments[1]);
-          }
-
-          final String value = _getMap(config, getter.name, forceStrings: forceStrings);
-
-          fields.add(Field((f) => f
-            ..annotations.add(refer('override'))
-            ..modifier = FieldModifier.final$
-            ..name = getter.name
-            ..assignment = _codeLiteral(value)
-          ));
-        } else if (getter.returnType.element.library == getter.library) {
-          // Class
-          final ClassElement innerClass = getter.returnType.element;
-
-          if (!sourceClasses.any((c) => c.element == innerClass)) {
-            throw BuildException('Cannot reference a non embedded config class as a config property.');
-          }
-
-          // Add field
-          fields.add(Field((f) => f
-            ..annotations.add(refer('override'))
-            ..modifier = FieldModifier.final$
-            ..name = getter.name
-            ..assignment = _codeClassInstantiation(_generatedClassNameOf(innerClass.name))
-          ));
-        } else {
-          // Any
-          final String value = _getLiteral(config, getter.name);
-
-          fields.add(Field((f) => f
-            ..annotations.add(refer('override'))
-            ..modifier = FieldModifier.final$
-            ..name = getter.name
-            ..assignment = _codeLiteral(value)
-          ));
-        }
+        fields.add(_generateOverrideForGetter(getter, config, sourceClasses));
       } on BuildException catch (ex) {
         if (ex.element == null) {
           // Attach getter element to exception
@@ -305,6 +230,93 @@ class ConfigGenerator extends source_gen.Generator {
         ..constant = true
       ))
     );
+  }
+
+  /// Generates a field which overrides the given [getter].
+  /// 
+  /// The field contains the embedded config value for the
+  /// [getter] retrieved from the [config].
+  Field _generateOverrideForGetter(
+    PropertyAccessorElement getter,
+    Map<String, dynamic> config,
+    List<_AnnotatedClass> sourceClasses
+  ) {
+    if (_stringTypeChecker.isExactlyType(getter.returnType)) {
+      // String
+      final value = _getString(config, getter.name);
+
+      return Field((f) => f
+        ..annotations.add(refer('override'))
+        ..modifier = FieldModifier.final$
+        ..name = getter.name
+        ..assignment = _codeLiteral(value)
+      );
+    } else if (_listTypeChecker.isAssignableFromType(getter.returnType)) {
+      // List
+      var forceStrings = false;
+
+      if (getter.returnType is ParameterizedType) {
+        final ParameterizedType type = getter.returnType;
+
+        // Force all values to strings if this is a List<String>
+        forceStrings = type.typeArguments.isNotEmpty 
+          && _stringTypeChecker.isExactlyType(type.typeArguments.first);
+      }
+
+      final value = _getList(config, getter.name, forceStrings: forceStrings);
+
+      return Field((f) => f
+        ..annotations.add(refer('override'))
+        ..modifier = FieldModifier.final$
+        ..name = getter.name
+        ..assignment = _codeLiteral(value)
+      );
+    } else if (_mapTypeChecker.isAssignableFromType(getter.returnType)) {
+      // Map
+      var forceStrings = false;
+
+      if (getter.returnType is ParameterizedType) {
+        final ParameterizedType type = getter.returnType;
+
+        // Force all values to strings if this is a Map<T, String>
+        forceStrings = type.typeArguments.length > 1 
+          && _stringTypeChecker.isExactlyType(type.typeArguments[1]);
+      }
+
+      final value = _getMap(config, getter.name, forceStrings: forceStrings);
+
+      return Field((f) => f
+        ..annotations.add(refer('override'))
+        ..modifier = FieldModifier.final$
+        ..name = getter.name
+        ..assignment = _codeLiteral(value)
+      );
+    } else if (getter.returnType.element.library == getter.library) {
+      // Class
+      final ClassElement innerClass = getter.returnType.element;
+
+      if (!sourceClasses.any((c) => c.element == innerClass)) {
+        throw BuildException('Cannot reference a non embedded config class as a config property.');
+      }
+
+      // Add field
+      return Field((f) => f
+        ..annotations.add(refer('override'))
+        ..modifier = FieldModifier.final$
+        ..name = getter.name
+        ..assignment = _codeClassInstantiation(_generatedClassNameOf(innerClass.name))
+      );
+    } else {
+      // Any
+      final value = _getLiteral(config, getter.name);
+
+      return Field((f) => f
+        ..annotations.add(refer('override'))
+        ..modifier = FieldModifier.final$
+        ..name = getter.name
+        ..assignment = _codeLiteral(value)
+      );
+    }
   }
 
   /// If the given [string] starts with `$`, then the value of
@@ -406,7 +418,7 @@ class ConfigGenerator extends source_gen.Generator {
     final buffer = StringBuffer();
     buffer.write('const [');
     
-    for (int i = 0; i < value.length; i++) {
+    for (var i = 0; i < value.length; i++) {
       if (i > 0) {
         buffer.write(',');
       }
@@ -433,8 +445,8 @@ class ConfigGenerator extends source_gen.Generator {
     final buffer = StringBuffer();
     buffer.write('const {');
     
-    bool first = true;
-    for (final MapEntry entry in value.entries) {
+    var first = true;
+    for (final entry in value.entries) {
       if (!first) {
         buffer.write(',');
       }
