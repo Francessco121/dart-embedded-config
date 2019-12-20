@@ -201,7 +201,7 @@ class ConfigGenerator extends source_gen.Generator {
     final List<Field> fields = [];
 
     final Iterable<PropertyAccessorElement> getters = $class.accessors
-      .where((accessor) => accessor.isGetter && !accessor.isStatic);
+      .where((accessor) => accessor.isGetter && !accessor.isStatic && accessor.isAbstract);
 
     for (PropertyAccessorElement getter in getters) {
       try {

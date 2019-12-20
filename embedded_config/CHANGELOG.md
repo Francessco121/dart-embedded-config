@@ -1,3 +1,6 @@
+## v0.1.3
+- Non-abstract getters are now ignored when generating the embedded config class.
+
 ## v0.1.2
 - Fix usage of multiple configuration sources with embedded configs mapped to specific paths not working.
 
