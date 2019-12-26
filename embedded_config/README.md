@@ -12,6 +12,8 @@ Configuration can come from JSON files, environment variables, and build.yaml fi
 - [Inline configuration sources](#inline-configuration-sources)
 - [Complex configuration models](#complex-configuration-models)
 - [Environment variables](#environment-variables)
+  - [Escaping environment variables](#escaping-environment-variables)
+  - [Example: Embedding a build identifier from CI](#example-embedding-a-build-identifier-from-ci)
 
 ## Usage
 
@@ -219,14 +221,18 @@ You would need to create three annotated classes:
 ```dart
 import 'package:embedded_config_annotations/embedded_config_annotations.dart';
 
+// Embeds the top-level of the configuration
 @EmbeddedConfig('app_config')
 abstract class AppConfig {
   String get prop1;
+  // Other embedded config classes in the same Dart library 
+  // can be referenced as a getter type
   AppSubConfig get sub;
 
   const AppConfig();
 }
 
+// Embeds the top-level contents of the "sub" object
 @EmbeddedConfig('app_config', path: 'sub')
 abstract class AppSubConfig {
   String get prop2;
@@ -235,6 +241,8 @@ abstract class AppSubConfig {
   const AppSubConfig();
 }
 
+// Embeds the top-level contents of the "sub2" object inside
+// of the "sub" object
 @EmbeddedConfig('app_config', path: 'sub.sub2')
 abstract class AppSub2Config {
   String get prop3;
@@ -249,11 +257,13 @@ The `path` property can also be used outside of this use-case and does not requi
 
 ## Environment variables
 
-Environment variables can be substituted for any **string value** in the configuration. This is done (only) by having the value start with `$`, for example: `$BUILD_ID` would be substituted with the environment variable `BUILD_ID`. 
+Environment variables can be substituted for any **string value** in the configuration. This is done by starting a value with `$`. For example, `$BUILD_ID` would be substituted with the value of the environment variable `BUILD_ID`.
 
-If you have a configuration value which starts with `$` but is not intended to be an environment variable, you can escape it with another `$`. This also means that every starting `$` character after the first will have one removed to account for the character escaping. For example, to get the literal value of `$$BUILD_ID` you would write `$$$BUILD_ID`, to get a literal value of `$$$BUILD_ID` you would write `$$$$BUILD_ID` and so on. This only affects `$` characters **at the start** of the value, if any other character is the first character in the string value, then none of the environment variable or escaping rules take effect.
+### Escaping environment variables
+If a configuration value literally starts with `$` and is not intended to be substituted for an environment variable, you can escape it with another `$`. For example, to embed the literal value `$BUILD_ID` your configuration would need the value `$$BUILD_ID`. This also means that embedding the literal value `$$BUILD_ID` requires the configuration value `$$$BUILD_ID` and so forth as any value starting with `$$` has those two first characters replaced with a single `$`.
 
-For example, if you wanted to embed a build identifier from CI into your application:
+### Example: Embedding a build identifier from CI
+The following is an example of how you could embed a build identifier from CI exposed as an environment variable into your application:
 
 ```dart
 import 'package:embedded_config_annotations/embedded_config_annotations.dart';
