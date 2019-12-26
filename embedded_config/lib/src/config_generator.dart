@@ -98,7 +98,7 @@ class ConfigGenerator extends source_gen.Generator {
   /// Reconstructs an [EmbeddedConfig] annotation from a [source_gen.ConstantReader] of one.
   EmbeddedConfig _reconstructClassAnnotation(source_gen.ConstantReader reader) {
     String key;
-    String path;
+    List<String> path;
 
     final keyReader = reader.read('key');
     if (!keyReader.isNull) {
@@ -107,7 +107,9 @@ class ConfigGenerator extends source_gen.Generator {
 
     final pathReader = reader.read('path');
     if (!pathReader.isNull) {
-      path = pathReader.stringValue;
+      path = pathReader.listValue
+        .map((v) => v.toStringValue())
+        .toList();
     }
 
     return EmbeddedConfig(key, path: path);
@@ -155,7 +157,7 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Follow path if specified
     if (annotation.path != null) {
-      for (final key in annotation.path.split('.')) {
+      for (final key in annotation.path) {
         if (config.containsKey(key)) {
           config = config[key];
         } else {

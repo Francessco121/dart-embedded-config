@@ -25,8 +25,10 @@ class EmbeddedConfig {
   /// ```
   final String key;
 
-  /// A `.` separated list of keys which specify where in the
-  /// config source the annotated class should get its values from.
+  /// A list of keys which specify where in the config source 
+  /// the annotated class should get its values from. The values
+  /// are ordered from the root of the configuration to the
+  /// desired sub-object.
   /// 
   /// Defaults to `null`, which will get values from the root
   /// of the config source.
@@ -45,7 +47,7 @@ class EmbeddedConfig {
   /// 
   /// You would create the following embedded config:
   /// ```dart
-  /// @EmbeddedConfig('<config key>', path: 'sub.sub2')
+  /// @EmbeddedConfig('<config key>', path: ['sub', 'sub2'])
   /// abstract class Sub2Config {
   ///   String get prop;
   /// }
@@ -55,7 +57,7 @@ class EmbeddedConfig {
   /// config object as an embedded config class can only get
   /// values from the single level in the config hierarchy
   /// which is it set to read from.
-  final String path;
+  final List<String> path;
 
   const EmbeddedConfig(this.key, {this.path})
     : assert(key != null);

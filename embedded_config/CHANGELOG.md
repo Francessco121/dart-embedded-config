@@ -1,3 +1,6 @@
+## v0.2.0
+- Support for `embedded_config_annotations` v0.2.0.
+
 ## v0.1.3
 - Non-abstract getters are now ignored when generating the embedded config class.
 

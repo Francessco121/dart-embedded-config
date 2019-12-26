@@ -40,9 +40,8 @@ abstract class AppConfig {
 }
 
 // Since this class represents a sub-object in the config,
-// specify a '.' separated 'path' to the object from the
-// root of the config.
-@EmbeddedConfig('app_config', path: 'auth')
+// specify a 'path' to the object from the root of the config.
+@EmbeddedConfig('app_config', path: ['auth'])
 abstract class AppAuthConfig {
   // Value will be set to the value of the environment 
   // variable 'AUTH_CLIENT_ID' as stated in the app_config.json

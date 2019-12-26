@@ -202,7 +202,7 @@ Inline configuration can also be combined with file sources, however inline will
 
 ## Complex configuration models
 
-When configuration is not a flat set of key/value pairs, multiple annotated embedded config classes can be used. This works by setting the `path` property of the `@EmbeddedConfig` annotation. The path is a `.` separated list of configuration keys.
+When configuration is not a flat set of key/value pairs, multiple annotated embedded config classes can be used. This works by setting the `path` property of the `@EmbeddedConfig` annotation. The path is a list of configuration keys ordered from the root of the configuration to the desired sub-object.
 
 For example, to embed the following configuration:
 ```json
@@ -233,7 +233,7 @@ abstract class AppConfig {
 }
 
 // Embeds the top-level contents of the "sub" object
-@EmbeddedConfig('app_config', path: 'sub')
+@EmbeddedConfig('app_config', path: ['sub'])
 abstract class AppSubConfig {
   String get prop2;
   AppSub2Config get sub2;
@@ -243,7 +243,7 @@ abstract class AppSubConfig {
 
 // Embeds the top-level contents of the "sub2" object inside
 // of the "sub" object
-@EmbeddedConfig('app_config', path: 'sub.sub2')
+@EmbeddedConfig('app_config', path: ['sub', 'sub2'])
 abstract class AppSub2Config {
   String get prop3;
 

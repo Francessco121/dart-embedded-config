@@ -53,11 +53,12 @@ abstract class AppConfig {
 //
 // By utilizing the path property, the class can specify where
 // in the config source that values should be read from. The path
-// is a `.` separated list of config keys.
+// is a list of config keys ordered from the root of the configuration
+// to the desired object.
 //
 // The key for the build.yaml to use is also kept the same since
 // this class is for the same sources as the AppConfig class.
-@EmbeddedConfig('app_config', path: 'auth')
+@EmbeddedConfig('app_config', path: ['auth'])
 abstract class AppAuthConfig {
   String get clientId;
   AppPoliciesConfig get policies;
@@ -67,10 +68,9 @@ abstract class AppAuthConfig {
 
 // Create a class for the 'policies'-level of the config file.
 //
-// Here we can see how that `.` separated syntax works. The
-// policy configuration is inside of the `auth` object in the
+// The policy configuration is inside of the `auth` object in the
 // config, so we specify a path into it first.
-@EmbeddedConfig('app_config', path: 'auth.policies')
+@EmbeddedConfig('app_config', path: ['auth', 'policies'])
 abstract class AppPoliciesConfig {
   String get loginSignUp;
   String get passwordReset;
