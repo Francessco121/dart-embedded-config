@@ -3,7 +3,7 @@ description: >
   Allows application configs to be embedded directly into source 
   code at build-time. Configuration can come from JSON files, 
   environment variables, and build.yaml files.
-version: 0.1.2
+version: 0.1.3
 homepage: https://github.com/Francessco121/dart-embedded-config
 
 environment:
