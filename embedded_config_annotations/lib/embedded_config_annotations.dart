@@ -3,7 +3,7 @@
 class EmbeddedConfig {
   /// A configuration key defined in build.yaml which specifies
   /// which sources should be used to get config values for the annotated class.
-  /// 
+  ///
   /// For example, to create an embedded config for a JSON document
   /// placed at `lib/app_config.json` in your application, you would
   /// define a key with the file as a source in your `build.*.yaml`:
@@ -14,9 +14,9 @@ class EmbeddedConfig {
   ///       embedded_config:
   ///         options:
   ///           app_config: 'lib/app_config.json'
-  /// 
+  ///
   /// ```
-  /// 
+  ///
   /// Then, annotate a class with the [key] set to the one defined in
   /// `build.*.yaml` (in this case `app_config`):
   /// ```dart
@@ -25,14 +25,14 @@ class EmbeddedConfig {
   /// ```
   final String key;
 
-  /// A list of keys which specify where in the config source 
+  /// A list of keys which specify where in the config source
   /// the annotated class should get its values from. The values
   /// are ordered from the root of the configuration to the
   /// desired sub-object.
-  /// 
+  ///
   /// Defaults to `null`, which will get values from the root
   /// of the config source.
-  /// 
+  ///
   /// For example, to create an embedded config for the values in
   /// the `sub2` object in the below JSON document:
   /// ```json
@@ -44,7 +44,7 @@ class EmbeddedConfig {
   ///   }
   /// }
   /// ```
-  /// 
+  ///
   /// You would create the following embedded config:
   /// ```dart
   /// @EmbeddedConfig('<config key>', path: ['sub', 'sub2'])
@@ -52,13 +52,12 @@ class EmbeddedConfig {
   ///   String get prop;
   /// }
   /// ```
-  /// 
+  ///
   /// This is necessary to get config values from any nested
   /// config object as an embedded config class can only get
   /// values from the single level in the config hierarchy
   /// which is it set to read from.
   final List<String> path;
 
-  const EmbeddedConfig(this.key, {this.path})
-    : assert(key != null);
+  const EmbeddedConfig(this.key, {this.path}) : assert(key != null);
 }

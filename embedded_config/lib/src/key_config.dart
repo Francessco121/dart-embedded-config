@@ -23,11 +23,10 @@ class KeyConfig {
           sources = [source];
         } else if (source is List) {
           // Multiple file sources
-          sources = source
-            .cast<String>()
-            .toList();
+          sources = source.cast<String>().toList();
         } else {
-          throw BuildException('Embedded config key source must be a string or list.');
+          throw BuildException(
+              'Embedded config key source must be a string or list.');
         }
       }
 
@@ -38,16 +37,20 @@ class KeyConfig {
         if (_inline is Map) {
           inline = _inline;
         } else {
-          throw BuildException('Embedded config key inline source must be a map.');
+          throw BuildException(
+              'Embedded config key inline source must be a map.');
         }
       }
     } else {
-      throw BuildException('Embedded config key config must be a string or a map.');
+      throw BuildException(
+          'Embedded config key config must be a string or a map.');
     }
 
     // Ensure at least one source was specified
     if (sources == null && inline == null) {
-      throw BuildException('Embedded config key must specify at least one file source or an inline source.');
+      throw BuildException(
+          'Embedded config key must specify at least one file source or an '
+          'inline source.');
     }
 
     return KeyConfig._(sources, inline);
