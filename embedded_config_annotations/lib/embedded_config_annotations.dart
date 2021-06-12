@@ -61,3 +61,32 @@ class EmbeddedConfig {
 
   const EmbeddedConfig(this.key, {this.path});
 }
+
+/// Marks a property within an [EmbeddedConfig] annotated class with a custom
+/// configuration key to map to the property.
+///
+/// By default, the configuration key mapped to any given property has the same
+/// name as the property in Dart code. This annotation allows that key to
+/// be changed.
+///
+/// For example, given the following configuration:
+/// ```json
+/// { "some_key": "value" }
+/// ```
+///
+/// You can embed the `some_key` value, without using underscore case in Dart,
+/// by doing the following:
+/// ```dart
+/// @EmbeddedConfig(...)
+/// abstract class Config {
+///   @EmbeddedPropertyName('some_key')
+///   String get someKey;
+/// }
+/// ```
+class EmbeddedPropertyName {
+  /// The key to use when mapping a configuration entry to the
+  /// annotated property.
+  final String name;
+
+  const EmbeddedPropertyName(this.name);
+}

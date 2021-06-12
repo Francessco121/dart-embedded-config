@@ -1,5 +1,6 @@
 ## v0.3.0
 - **(breaking change)** Migrated to null-safety.
+- Add the `@EmbeddedPropertyName` annotation to let a key other than the property name in Dart to be used for that property's configuration key.
 - Changed minimum SDK version to `2.12.0`.
 
 ## v0.2.0

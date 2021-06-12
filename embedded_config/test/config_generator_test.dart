@@ -493,5 +493,56 @@ void main() {
             }
           });
     });
+
+    test('allows properties to be renamed', () async {
+      await testGenerator(config: {
+        'test_config': {
+          'inline': {
+            'test_1': 'value',
+            'test_2': 0,
+            'test_3': true,
+            'test_4': ['a'],
+            'test_5': {'a': 'b'}
+          }
+        }
+      }, assets: {
+        'a|lib/test.dart': '''
+          import 'package:embedded_config_annotations/embedded_config_annotations.dart';
+          
+          part 'test.embedded.dart';
+
+          @EmbeddedConfig('test_config')
+          abstract class TestConfig {
+            @EmbeddedPropertyName('test_1')
+            String get test1;
+
+            @EmbeddedPropertyName('test_2')
+            num get test2;
+
+            @EmbeddedPropertyName('test_3')
+            bool get test3;
+
+            @EmbeddedPropertyName('test_4')
+            List get test4;
+
+            @EmbeddedPropertyName('test_5')
+            Map get test5;
+
+            const TestConfig();
+          }
+        '''
+      }, outputs: {
+        'a|lib/test.embedded.dart': (CompilationUnit unit) {
+          expect(unit.declarations, hasClass(r'_$TestConfigEmbedded'));
+          final $class = getClass(unit, r'_$TestConfigEmbedded')!;
+
+          testField($class, 'test1', 'value');
+          testField($class, 'test2', 0);
+          testField($class, 'test3', true);
+          testField($class, 'test4', ['a']);
+          testField($class, 'test5', {'a': 'b'});
+        }
+      });
+    });
   });
 }

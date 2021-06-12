@@ -15,6 +15,8 @@ import 'key_config.dart';
 
 const _classAnnotationTypeChecker =
     source_gen.TypeChecker.fromRuntime(EmbeddedConfig);
+const _getterNameAnnotationTypeChecker =
+    source_gen.TypeChecker.fromRuntime(EmbeddedPropertyName);
 const _stringTypeChecker = source_gen.TypeChecker.fromRuntime(String);
 const _listTypeChecker = source_gen.TypeChecker.fromRuntime(List);
 const _mapTypeChecker = source_gen.TypeChecker.fromRuntime(Map);
@@ -24,8 +26,9 @@ const _boolTypeChecker = source_gen.TypeChecker.fromRuntime(bool);
 class _AnnotatedClass {
   final ClassElement element;
   final EmbeddedConfig annotation;
+  final Map<PropertyAccessorElement, String> annotatedGetters;
 
-  _AnnotatedClass(this.element, this.annotation);
+  _AnnotatedClass(this.element, this.annotation, this.annotatedGetters);
 }
 
 class ConfigGenerator extends source_gen.Generator {
@@ -56,16 +59,29 @@ class ConfigGenerator extends source_gen.Generator {
             classElement);
       }
 
-      sourceClasses.add(_AnnotatedClass(classElement,
-          _reconstructClassAnnotation(annotatedElement.annotation)));
+      // Get annotated getters
+      final annotatedGetterNames = <PropertyAccessorElement, String>{};
+
+      for (final accessor in classElement.accessors) {
+        final annotation =
+            _getterNameAnnotationTypeChecker.firstAnnotationOf(accessor);
+
+        if (annotation != null) {
+          final reader = source_gen.ConstantReader(annotation);
+
+          annotatedGetterNames[accessor] = reader.read('name').stringValue;
+        }
+      }
+
+      sourceClasses.add(_AnnotatedClass(
+          classElement,
+          _reconstructClassAnnotation(annotatedElement.annotation),
+          annotatedGetterNames));
     }
 
     // Build classes
     final classes = <Class>[];
-    // Min SDK constraint doesn't support set literals, must ignore this lint
-    // unfortunately
-    // ignore: prefer_collection_literals
-    final generatedClasses = Set<String>();
+    final generatedClasses = <String>{};
 
     for (final annotatedClass in sourceClasses) {
       // Resolve real config values
@@ -74,7 +90,11 @@ class ConfigGenerator extends source_gen.Generator {
 
       // Generate class
       final $class = _generateClass(
-          annotatedClass.element, config, sourceClasses, generatedClasses);
+          annotatedClass.element,
+          annotatedClass.annotatedGetters,
+          config,
+          sourceClasses,
+          generatedClasses);
 
       if ($class != null) {
         classes.add($class);
@@ -190,8 +210,12 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   /// Generates a class for the given [$class] element using the given [config].
-  Class? _generateClass(ClassElement $class, Map<String, dynamic> config,
-      List<_AnnotatedClass> sourceClasses, Set<String> generatedClasses) {
+  Class? _generateClass(
+      ClassElement $class,
+      Map<PropertyAccessorElement, String> getterNames,
+      Map<String, dynamic> config,
+      List<_AnnotatedClass> sourceClasses,
+      Set<String> generatedClasses) {
     if (generatedClasses.contains($class.name)) {
       // This class has already been generated
       return null;
@@ -207,7 +231,8 @@ class ConfigGenerator extends source_gen.Generator {
 
     for (final getter in getters) {
       try {
-        fields.add(_generateOverrideForGetter(getter, config, sourceClasses));
+        fields.add(_generateOverrideForGetter(
+            getter, config, sourceClasses, getterNames[getter]));
       } on BuildException catch (ex) {
         if (ex.element == null) {
           // Attach getter element to exception
@@ -238,21 +263,28 @@ class ConfigGenerator extends source_gen.Generator {
   ///
   /// The field contains the embedded config value for the
   /// [getter] retrieved from the [config].
-  Field _generateOverrideForGetter(PropertyAccessorElement getter,
-      Map<String, dynamic> config, List<_AnnotatedClass> sourceClasses) {
+  Field _generateOverrideForGetter(
+      PropertyAccessorElement getter,
+      Map<String, dynamic> config,
+      List<_AnnotatedClass> sourceClasses,
+      String? customKey) {
     final returnType = getter.returnType;
+
+    // Determine key
+    final String key = customKey ?? getter.name;
 
     // Ensure non-null value provided for non-null field
     if (returnType.nullabilitySuffix == NullabilitySuffix.none &&
         !returnType.isDynamic &&
-        config[getter.name] == null) {
+        config[key] == null) {
       throw BuildException(
           'Must provide a non-null config value for a non-nullable config property.');
     }
 
+    // Handle type
     if (_stringTypeChecker.isExactlyType(returnType)) {
       // String
-      final value = _getString(config, getter.name);
+      final value = _getString(config, key);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -269,7 +301,7 @@ class ConfigGenerator extends source_gen.Generator {
             _stringTypeChecker.isExactlyType(returnType.typeArguments.first);
       }
 
-      final value = _getList(config, getter.name, forceStrings: forceStrings);
+      final value = _getList(config, key, forceStrings: forceStrings);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -286,7 +318,7 @@ class ConfigGenerator extends source_gen.Generator {
             _stringTypeChecker.isExactlyType(returnType.typeArguments[1]);
       }
 
-      final value = _getMap(config, getter.name, forceStrings: forceStrings);
+      final value = _getMap(config, key, forceStrings: forceStrings);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -297,7 +329,7 @@ class ConfigGenerator extends source_gen.Generator {
         _boolTypeChecker.isAssignableFromType(returnType) ||
         returnType.isDynamic) {
       // Num, bool, dynamic, num? (note: num? will be dynamic)
-      final value = _getLiteral(config, getter.name);
+      final value = _getLiteral(config, key);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -325,7 +357,7 @@ class ConfigGenerator extends source_gen.Generator {
         ..annotations.add(refer('override'))
         ..modifier = FieldModifier.final$
         ..name = getter.name
-        ..assignment = config[getter.name] == null
+        ..assignment = config[key] == null
             ? _codeLiteral(null)
             : _codeClassInstantiation(_generatedClassNameOf(innerClass.name)));
     } else {
