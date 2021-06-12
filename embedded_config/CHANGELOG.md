@@ -2,6 +2,7 @@
 - **(breaking change)** Migrated to null-safety.
 - **(breaking change)** When `null` is provided for a config key that maps to a config class, that property will be set to `null` now instead of an instance of that class with all `null` properties (Note: This does not happen for non-nullable properties as those are considered 'required' in this release).
 - **(breaking change)** The escape character for the environment variable prefix is now `\` instead of a second `$`. This allows for the case where an environment variable's name starts with a `$`, which previously was impossible to embed.
+- **(breaking change)** Private getters will now look for a configuration key without the leading `_` present in private Dart identifiers. Use the new `@EmbeddedPropertyName` annotation to map the old way.
 - Support the new `@EmbeddedPropertyName` annotation to let a key other than the property name in Dart to be used for that property's configuration key.
 - Getter types can now be `dynamic`.
 - Changed minimum SDK version to `2.12.0`.

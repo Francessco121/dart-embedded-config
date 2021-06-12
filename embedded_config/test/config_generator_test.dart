@@ -544,5 +544,37 @@ void main() {
         }
       });
     });
+
+    test('allows properties to be private', () async {
+      await testGenerator(config: {
+        'test_config': {
+          'inline': {'key1': 'value1', 'key_2': 'value2'}
+        }
+      }, assets: {
+        'a|lib/test.dart': '''
+          import 'package:embedded_config_annotations/embedded_config_annotations.dart';
+          
+          part 'test.embedded.dart';
+
+          @EmbeddedConfig('test_config')
+          abstract class TestConfig {
+            String get _key1;
+
+            @EmbeddedPropertyName('key_2')
+            String get _key2;
+
+            const TestConfig();
+          }
+        '''
+      }, outputs: {
+        'a|lib/test.embedded.dart': (CompilationUnit unit) {
+          expect(unit.declarations, hasClass(r'_$TestConfigEmbedded'));
+          final $class = getClass(unit, r'_$TestConfigEmbedded')!;
+
+          testField($class, '_key1', 'value1');
+          testField($class, '_key2', 'value2');
+        }
+      });
+    });
   });
 }

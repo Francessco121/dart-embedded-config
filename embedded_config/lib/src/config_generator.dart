@@ -53,7 +53,9 @@ class ConfigGenerator extends source_gen.Generator {
     for (final annotatedElement in annotatedElements) {
       final classElement = annotatedElement.element;
 
-      if (classElement is! ClassElement || !classElement.isAbstract) {
+      if (classElement is! ClassElement ||
+          !classElement.isAbstract ||
+          classElement.isEnum) {
         throw BuildException(
             'Only abstract classes may be annotated with @EmbeddedConfig!',
             classElement);
@@ -271,7 +273,13 @@ class ConfigGenerator extends source_gen.Generator {
     final returnType = getter.returnType;
 
     // Determine key
-    final String key = customKey ?? getter.name;
+    final String key;
+
+    if (customKey == null) {
+      key = getter.isPrivate ? getter.name.substring(1) : getter.name;
+    } else {
+      key = customKey;
+    }
 
     // Ensure non-null value provided for non-null field
     if (returnType.nullabilitySuffix == NullabilitySuffix.none &&

@@ -55,6 +55,19 @@ abstract class AppConfig {
 }
 ```
 
+#### Embedded config getters
+
+By default, the name of the getter defined in Dart will be used as the configuration key when mapping configuration to the generated class. This has one exception, if the getter is private then the leading `_` will be excluded. 
+
+A key different then the getter's name can be used by annotating the getter with `@EmbeddedPropertyName`:
+
+```dart
+// This will cause the `api_url` configuration key to be mapped to this
+// getter instead of `apiUrl`.
+@EmbeddedPropertyName('api_url')
+String get apiUrl;
+```
+
 Getter return types can be any of the following (including nullable versions of each):
 - `String`
 - `int`
@@ -70,9 +83,11 @@ Getter return types can be any of the following (including nullable versions of 
 >
 > Example: A getter of `List<String>` given the config value of `[24]` will get an embedded value of `["24"]`.
 
+> **Note:** Non-nullable getters will result in that property being required. If none of the provided configuration sources define a non-null value for a non-nullable getter, then an error will be thrown at build-time.
+
 ### 3. Map configuration source(s)
 
-Next, we need the actual configuration. Configuration can be specified in two places: JSON files in your application package and build.yaml files. Both of these sources can additionally make use of environment variables.
+Next, we need the actual configuration. Configuration can be specified in two places: JSON files in your application package and build.yaml files. Both of these sources can additionally [make use of environment variables](environment-variables).
 
 Configuration sources are mapped to annotated classes inside of your application's build.yaml files. This allows you to swap out configuration values for different builds.
 
@@ -117,8 +132,6 @@ class _$AppConfigEmbedded extends AppConfig {
   final apiUrl = '/api';
 }
 ```
-
-> **Note:** Non-nullable getters will result in that property being required. If none of the provided configuration sources define a non-null value for a non-nullable getter, then an error will be thrown at build-time.
 
 The annotated `AppConfig` class can then expose the generated class in any way you choose. Since embedded configs are marked with `const` constructors, one nice way is to expose it as a `static const` singleton value:
 
