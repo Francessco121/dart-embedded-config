@@ -6,6 +6,8 @@ import 'package:build_test/build_test.dart';
 import 'package:collection/collection.dart';
 import 'package:embedded_config/embedded_config.dart';
 import 'package:embedded_config/src/config_generator.dart';
+import 'package:embedded_config/src/environment_provider.dart';
+import 'package:source_gen/source_gen.dart';
 import 'package:test/test.dart';
 
 import 'in_memory_asset_string_writer.dart';
@@ -22,13 +24,25 @@ typedef OutputTestCallback = FutureOr<void> Function(CompilationUnit unit);
 /// without validation. If a build exception is thrown, it will not be caught
 /// here and can be handled by the caller.
 ///
+/// A custom [environmentProvider] may be provided to allow the testing of
+/// environment variable mapped config values.
+///
 /// See [testBuilder] for more info.
 Future<void> testGenerator(
     {required Map<String, dynamic> config,
     required Map<String, String> assets,
-    Map<String, OutputTestCallback>? outputs}) async {
+    Map<String, OutputTestCallback>? outputs,
+    EnvironmentProvider? environmentProvider}) async {
   // Create builder for ConfigGenerator
-  final builder = configBuilder(BuilderOptions(config));
+  Builder builder;
+
+  if (environmentProvider == null) {
+    builder = configBuilder(BuilderOptions(config));
+  } else {
+    builder = PartBuilder(
+        [ConfigGenerator(config, environmentProvider: environmentProvider)],
+        '.embedded.dart');
+  }
 
   // Run generator
   final writer = InMemoryAssetStringWriter();

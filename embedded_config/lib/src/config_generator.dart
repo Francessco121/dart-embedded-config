@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -11,6 +10,7 @@ import 'package:embedded_config_annotations/embedded_config_annotations.dart';
 import 'package:source_gen/source_gen.dart' as source_gen;
 
 import 'build_exception.dart';
+import 'environment_provider.dart';
 import 'key_config.dart';
 
 const _classAnnotationTypeChecker =
@@ -30,10 +30,14 @@ class _AnnotatedClass {
 
 class ConfigGenerator extends source_gen.Generator {
   final Map<String, KeyConfig> _keys;
+  final EnvironmentProvider _environmentProvider;
 
-  ConfigGenerator(Map<String, dynamic> config)
+  ConfigGenerator(Map<String, dynamic> config,
+      {EnvironmentProvider environmentProvider =
+          const PlatformEnvironmentProvider()})
       // Parse key configs
-      : _keys = config.map((k, v) => MapEntry(k, KeyConfig.fromBuildConfig(v)));
+      : _keys = config.map((k, v) => MapEntry(k, KeyConfig.fromBuildConfig(v))),
+        _environmentProvider = environmentProvider;
 
   @override
   FutureOr<String?> generate(
@@ -334,16 +338,16 @@ class ConfigGenerator extends source_gen.Generator {
   /// the environment variable with the name specified by the remaining
   /// characters in [string] after the `$` will be returned.
   ///
-  /// If [string] starts with `$$` then the `$` will be treated as
-  /// an escaped character and the first `$` will be removed. This also
-  /// means that for every `$` starting character after the first, one
-  /// will always be removed to account for the escaping (ex. `$$$` turns
-  /// into `$$`).
+  /// If [string] starts with `\$` then the `$` will be treated as
+  /// an escaped character (environment variables will not be queried)
+  /// and the first `\` will be removed. This also means that for every
+  /// `\` starting character after the first, one will always be removed
+  /// to account for the escaping (ex. `\\$` turns into `\$`).
   String? _checkEnvironmentVariable(String string) {
-    if (string.startsWith(r'$$')) {
+    if (string.startsWith(RegExp(r'^\\+\$'))) {
       return string.substring(1);
     } else if (string.startsWith(r'$')) {
-      return Platform.environment[string.substring(1)];
+      return _environmentProvider.environment[string.substring(1)];
     } else {
       return string;
     }

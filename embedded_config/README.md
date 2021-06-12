@@ -263,7 +263,13 @@ The `path` property can also be used outside of this use-case and does not requi
 Environment variables can be substituted for any **string value** in the configuration. This is done by starting a value with `$`. For example, `$BUILD_ID` would be substituted with the value of the environment variable `BUILD_ID`.
 
 ### Escaping environment variables
-If a configuration value literally starts with `$` and is not intended to be substituted for an environment variable, you can escape it with another `$`. For example, to embed the literal value `$BUILD_ID` your configuration would need the value `$$BUILD_ID`. This also means that embedding the literal value `$$BUILD_ID` requires the configuration value `$$$BUILD_ID` and so forth as any value starting with `$$` has those two first characters replaced with a single `$`.
+> **Note:** If you need to substitute a value with an environment variable whose name starts with `$`, then you can simply write it as `$$NAME`, which will simply look for the environment variable literally named `$NAME` and not use any kind of escaping.
+
+If a configuration value literally starts with `$` and is not intended to be substituted for an environment variable, you can escape it with a `\`. For example, to embed the literal value `$BUILD_ID` your configuration would need the value `\$BUILD_ID`. 
+
+This also means that embedding the literal value `\$BUILD_ID` requires the configuration value `\\$BUILD_ID` and so forth as any value starting with the regular expression `^\\+\$` has the **first instance** of `\$` replaced with just `$`.
+
+> **Note:** You do not need to escape every `$` character in your configuration value, only the first instance of it **and only if the value starts with `\` and `$` characters**. Trying to escape any other `$` will result in the `\` character remaining in the value.
 
 ### Example: Embedding a build identifier from CI
 The following is an example of how you could embed a build identifier from CI exposed as an environment variable into your application:

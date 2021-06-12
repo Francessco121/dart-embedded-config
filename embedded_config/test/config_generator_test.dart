@@ -3,6 +3,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:embedded_config/src/build_exception.dart';
 import 'package:test/test.dart';
 
+import 'test_utils/map_environment_provider.dart';
 import 'test_utils/test_utils.dart';
 
 void main() {
@@ -443,6 +444,54 @@ void main() {
           testField($class, 'sub', null);
         }
       });
+    });
+
+    test('handles environment variables and environment variable escaping',
+        () async {
+      await testGenerator(
+          config: {
+            'test_config': {
+              'inline': {
+                'envVar': r'$VARIABLE',
+                r'envVarWith$': r'$$VARIABLE',
+                'escapedEnvVar': r'\$VARIABLE',
+                r'escapeEnvVarWithExtraSlash': r'\\$VARIABLE',
+                r'variableWithSlash$': r'VARIABLE\$'
+              }
+            }
+          },
+          assets: {
+            'a|lib/test.dart': r'''
+              import 'package:embedded_config_annotations/embedded_config_annotations.dart';
+              
+              part 'test.embedded.dart';
+
+              @EmbeddedConfig('test_config')
+              abstract class TestConfig {
+                String get envVar;
+                String get envVarWith$;
+                String get escapedEnvVar;
+                String get escapeEnvVarWithExtraSlash;
+                String get variableWithSlash$;
+
+                const TestConfig();
+              }
+            '''
+          },
+          environmentProvider: MapEnvironmentProvider(
+              {'VARIABLE': 'value1', r'$VARIABLE': 'value2'}),
+          outputs: {
+            'a|lib/test.embedded.dart': (CompilationUnit unit) {
+              expect(unit.declarations, hasClass(r'_$TestConfigEmbedded'));
+              final $class = getClass(unit, r'_$TestConfigEmbedded')!;
+
+              testField($class, 'envVar', 'value1');
+              testField($class, r'envVarWith$', 'value2');
+              testField($class, 'escapedEnvVar', r'$VARIABLE');
+              testField($class, 'escapeEnvVarWithExtraSlash', r'\$VARIABLE');
+              testField($class, r'variableWithSlash$', r'VARIABLE\$');
+            }
+          });
     });
   });
 }
