@@ -57,7 +57,7 @@ class EmbeddedConfig {
   /// config object as an embedded config class can only get
   /// values from the single level in the config hierarchy
   /// which is it set to read from.
-  final List<String> path;
+  final List<String>? path;
 
-  const EmbeddedConfig(this.key, {this.path}) : assert(key != null);
+  const EmbeddedConfig(this.key, {this.path});
 }

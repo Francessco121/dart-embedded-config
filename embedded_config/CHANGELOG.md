@@ -1,3 +1,14 @@
+## v0.3.0
+- **(breaking change)** Migrated to null-safety.
+- **(breaking change)** When `null` is provided for a config key that maps to a config class, that property will be set to `null` now instead of an instance of that class with all `null` properties (Note: This does not happen for non-nullable properties as those are considered 'required' in this release).
+- Getter types can now be `dynamic`.
+- Changed minimum SDK version to `2.12.0`.
+- Package dependency changes (for `embedded_config`):
+    - `analyzer`: `>=0.32.4 <0.40.0` -> `^1.0.0`
+    - `build`: `^1.0.0` -> `^2.0.0`
+    - `code_builder`: `^3.2.0` -> `^4.0.0`
+    - `source_gen`: `^0.9.0` -> `1.0.0`
+
 ## v0.2.0
 - Support for `embedded_config_annotations` v0.2.0.
 

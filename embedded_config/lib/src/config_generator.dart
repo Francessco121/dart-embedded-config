@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
@@ -17,6 +18,8 @@ const _classAnnotationTypeChecker =
 const _stringTypeChecker = source_gen.TypeChecker.fromRuntime(String);
 const _listTypeChecker = source_gen.TypeChecker.fromRuntime(List);
 const _mapTypeChecker = source_gen.TypeChecker.fromRuntime(Map);
+const _numTypeChecker = source_gen.TypeChecker.fromRuntime(num);
+const _boolTypeChecker = source_gen.TypeChecker.fromRuntime(bool);
 
 class _AnnotatedClass {
   final ClassElement element;
@@ -33,7 +36,7 @@ class ConfigGenerator extends source_gen.Generator {
       : _keys = config.map((k, v) => MapEntry(k, KeyConfig.fromBuildConfig(v)));
 
   @override
-  FutureOr<String> generate(
+  FutureOr<String?> generate(
       source_gen.LibraryReader library, BuildStep buildStep) async {
     // Get annotated classes
     final sourceClasses = <_AnnotatedClass>[];
@@ -43,8 +46,7 @@ class ConfigGenerator extends source_gen.Generator {
     for (final annotatedElement in annotatedElements) {
       final classElement = annotatedElement.element;
 
-      if (classElement is! ClassElement ||
-          !(classElement as ClassElement).isAbstract) {
+      if (classElement is! ClassElement || !classElement.isAbstract) {
         throw BuildException(
             'Only abstract classes may be annotated with @EmbeddedConfig!',
             classElement);
@@ -56,25 +58,15 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Build classes
     final classes = <Class>[];
-    // Min SDK constraint doesn't support set literals, must ignore this lint 
+    // Min SDK constraint doesn't support set literals, must ignore this lint
     // unfortunately
     // ignore: prefer_collection_literals
     final generatedClasses = Set<String>();
 
     for (final annotatedClass in sourceClasses) {
       // Resolve real config values
-      if (annotatedClass.annotation.key == null) {
-        throw BuildException(
-            'Embedded config key cannot be null.', annotatedClass.element);
-      }
-
       final config = await _resolveConfig(
           buildStep, annotatedClass.element, annotatedClass.annotation);
-
-      if (config == null) {
-        throw BuildException(
-            'Could not resolve config source.', annotatedClass.element);
-      }
 
       // Generate class
       final $class = _generateClass(
@@ -95,25 +87,23 @@ class ConfigGenerator extends source_gen.Generator {
     final libraryAst = Library((l) => l..body.addAll(classes));
 
     // Emit source
-    final emitter = DartEmitter(Allocator.simplePrefixing());
+    final emitter = DartEmitter(allocator: Allocator.simplePrefixing());
 
     return libraryAst.accept(emitter).toString();
   }
 
-  /// Reconstructs an [EmbeddedConfig] annotation from a 
+  /// Reconstructs an [EmbeddedConfig] annotation from a
   /// [source_gen.ConstantReader] of one.
   EmbeddedConfig _reconstructClassAnnotation(source_gen.ConstantReader reader) {
     String key;
-    List<String> path;
+    List<String>? path;
 
     final keyReader = reader.read('key');
-    if (!keyReader.isNull) {
-      key = keyReader.stringValue;
-    }
+    key = keyReader.stringValue;
 
     final pathReader = reader.read('path');
     if (!pathReader.isNull) {
-      path = pathReader.listValue.map((v) => v.toStringValue()).toList();
+      path = pathReader.listValue.map((v) => v.toStringValue()!).toList();
     }
 
     return EmbeddedConfig(key, path: path);
@@ -123,7 +113,7 @@ class ConfigGenerator extends source_gen.Generator {
   Future<Map<String, dynamic>> _resolveConfig(BuildStep buildStep,
       ClassElement classElement, EmbeddedConfig annotation) async {
     // Get the key config
-    final keyConfig = _keys[annotation.key];
+    final KeyConfig? keyConfig = _keys[annotation.key];
 
     if (keyConfig == null) {
       throw BuildException(
@@ -135,7 +125,7 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Apply file sources
     if (keyConfig.sources != null) {
-      for (final filePath in keyConfig.sources) {
+      for (final filePath in keyConfig.sources!) {
         // Read file
         final assetId = AssetId(buildStep.inputId.package, filePath);
         final assetContents = await buildStep.readAsString(assetId);
@@ -157,14 +147,18 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Apply inline source
     if (keyConfig.inline != null) {
-      _mergeMaps(config, keyConfig.inline);
+      _mergeMaps(config, keyConfig.inline!);
     }
 
     // Follow path if specified
     if (annotation.path != null) {
-      for (final key in annotation.path) {
+      for (final key in annotation.path!) {
         if (config.containsKey(key)) {
-          config = config[key];
+          if (config[key] == null) {
+            return {};
+          } else {
+            config = config[key];
+          }
         } else {
           throw BuildException(
               "Could not follow path '${annotation.path}' for config "
@@ -177,7 +171,7 @@ class ConfigGenerator extends source_gen.Generator {
     return config;
   }
 
-  /// Merges the [top] map on top of the [base] map, overwriting values at the 
+  /// Merges the [top] map on top of the [base] map, overwriting values at the
   /// lowest level possible.
   void _mergeMaps(Map base, Map top) {
     top.forEach((k, v) {
@@ -192,7 +186,7 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   /// Generates a class for the given [$class] element using the given [config].
-  Class _generateClass(ClassElement $class, Map<String, dynamic> config,
+  Class? _generateClass(ClassElement $class, Map<String, dynamic> config,
       List<_AnnotatedClass> sourceClasses, Set<String> generatedClasses) {
     if (generatedClasses.contains($class.name)) {
       // This class has already been generated
@@ -221,8 +215,8 @@ class ConfigGenerator extends source_gen.Generator {
     }
 
     // Ensure class declares a constant default constructor
-    if ($class.unnamedConstructor == null ||
-        !$class.unnamedConstructor.isConst) {
+    final constructor = $class.unnamedConstructor;
+    if (constructor == null || !constructor.isConst) {
       throw BuildException(
           'Embedded config classes must declare a const default constructor.',
           $class);
@@ -242,7 +236,17 @@ class ConfigGenerator extends source_gen.Generator {
   /// [getter] retrieved from the [config].
   Field _generateOverrideForGetter(PropertyAccessorElement getter,
       Map<String, dynamic> config, List<_AnnotatedClass> sourceClasses) {
-    if (_stringTypeChecker.isExactlyType(getter.returnType)) {
+    final returnType = getter.returnType;
+
+    // Ensure non-null value provided for non-null field
+    if (returnType.nullabilitySuffix == NullabilitySuffix.none &&
+        !returnType.isDynamic &&
+        config[getter.name] == null) {
+      throw BuildException(
+          'Must provide a non-null config value for a non-nullable config property.');
+    }
+
+    if (_stringTypeChecker.isExactlyType(returnType)) {
       // String
       final value = _getString(config, getter.name);
 
@@ -251,16 +255,14 @@ class ConfigGenerator extends source_gen.Generator {
         ..modifier = FieldModifier.final$
         ..name = getter.name
         ..assignment = _codeLiteral(value));
-    } else if (_listTypeChecker.isAssignableFromType(getter.returnType)) {
+    } else if (_listTypeChecker.isAssignableFromType(returnType)) {
       // List
       var forceStrings = false;
 
-      if (getter.returnType is ParameterizedType) {
-        final ParameterizedType type = getter.returnType;
-
+      if (returnType is ParameterizedType) {
         // Force all values to strings if this is a List<String>
-        forceStrings = type.typeArguments.isNotEmpty &&
-            _stringTypeChecker.isExactlyType(type.typeArguments.first);
+        forceStrings = returnType.typeArguments.isNotEmpty &&
+            _stringTypeChecker.isExactlyType(returnType.typeArguments.first);
       }
 
       final value = _getList(config, getter.name, forceStrings: forceStrings);
@@ -270,16 +272,14 @@ class ConfigGenerator extends source_gen.Generator {
         ..modifier = FieldModifier.final$
         ..name = getter.name
         ..assignment = _codeLiteral(value));
-    } else if (_mapTypeChecker.isAssignableFromType(getter.returnType)) {
+    } else if (_mapTypeChecker.isAssignableFromType(returnType)) {
       // Map
       var forceStrings = false;
 
-      if (getter.returnType is ParameterizedType) {
-        final ParameterizedType type = getter.returnType;
-
+      if (returnType is ParameterizedType) {
         // Force all values to strings if this is a Map<T, String>
-        forceStrings = type.typeArguments.length > 1 &&
-            _stringTypeChecker.isExactlyType(type.typeArguments[1]);
+        forceStrings = returnType.typeArguments.length > 1 &&
+            _stringTypeChecker.isExactlyType(returnType.typeArguments[1]);
       }
 
       final value = _getMap(config, getter.name, forceStrings: forceStrings);
@@ -289,9 +289,26 @@ class ConfigGenerator extends source_gen.Generator {
         ..modifier = FieldModifier.final$
         ..name = getter.name
         ..assignment = _codeLiteral(value));
-    } else if (getter.returnType.element.library == getter.library) {
+    } else if (_numTypeChecker.isAssignableFromType(returnType) ||
+        _boolTypeChecker.isAssignableFromType(returnType) ||
+        returnType.isDynamic) {
+      // Num, bool, dynamic, num? (note: num? will be dynamic)
+      final value = _getLiteral(config, getter.name);
+
+      return Field((f) => f
+        ..annotations.add(refer('override'))
+        ..modifier = FieldModifier.final$
+        ..name = getter.name
+        ..assignment = _codeLiteral(value));
+    } else if (returnType.element is ClassElement) {
       // Class
-      final ClassElement innerClass = getter.returnType.element;
+      final innerClass = returnType.element as ClassElement;
+
+      if (returnType.element!.library != getter.library) {
+        throw BuildException(
+            'Cannot reference a class from a different library as '
+            'a config property.');
+      }
 
       if (!sourceClasses.any((c) => c.element == innerClass)) {
         throw BuildException(
@@ -304,17 +321,12 @@ class ConfigGenerator extends source_gen.Generator {
         ..annotations.add(refer('override'))
         ..modifier = FieldModifier.final$
         ..name = getter.name
-        ..assignment =
-            _codeClassInstantiation(_generatedClassNameOf(innerClass.name)));
+        ..assignment = config[getter.name] == null
+            ? _codeLiteral(null)
+            : _codeClassInstantiation(_generatedClassNameOf(innerClass.name)));
     } else {
       // Any
-      final value = _getLiteral(config, getter.name);
-
-      return Field((f) => f
-        ..annotations.add(refer('override'))
-        ..modifier = FieldModifier.final$
-        ..name = getter.name
-        ..assignment = _codeLiteral(value));
+      throw BuildException('Type $returnType is not supported.');
     }
   }
 
@@ -325,8 +337,9 @@ class ConfigGenerator extends source_gen.Generator {
   /// If [string] starts with `$$` then the `$` will be treated as
   /// an escaped character and the first `$` will be removed. This also
   /// means that for every `$` starting character after the first, one
-  /// will always be removed to account for the escaping.
-  String _checkEnvironmentVariable(String string) {
+  /// will always be removed to account for the escaping (ex. `$$$` turns
+  /// into `$$`).
+  String? _checkEnvironmentVariable(String string) {
     if (string.startsWith(r'$$')) {
       return string.substring(1);
     } else if (string.startsWith(r'$')) {
@@ -336,7 +349,7 @@ class ConfigGenerator extends source_gen.Generator {
     }
   }
 
-  String _getLiteral(Map<String, dynamic> map, String key) {
+  String? _getLiteral(Map<String, dynamic> map, String key) {
     final dynamic value = map[key];
 
     if (value == null) return null;
@@ -344,7 +357,7 @@ class ConfigGenerator extends source_gen.Generator {
     return _makeLiteral(value);
   }
 
-  String _getString(Map<String, dynamic> map, String key) {
+  String? _getString(Map<String, dynamic> map, String key) {
     final dynamic value = map[key];
 
     if (value == null) return null;
@@ -356,10 +369,8 @@ class ConfigGenerator extends source_gen.Generator {
     }
   }
 
-  String _getList(Map<String, dynamic> map, String key,
+  String? _getList(Map<String, dynamic> map, String key,
       {bool forceStrings = false}) {
-    if (map == null) return null;
-
     final dynamic value = map[key];
 
     if (value == null) return null;
@@ -371,10 +382,8 @@ class ConfigGenerator extends source_gen.Generator {
     }
   }
 
-  String _getMap(Map<String, dynamic> map, String key,
+  String? _getMap(Map<String, dynamic> map, String key,
       {bool forceStrings = false}) {
-    if (map == null) return null;
-
     final dynamic value = map[key];
 
     if (value == null) return null;
@@ -404,7 +413,7 @@ class ConfigGenerator extends source_gen.Generator {
     return value ? 'true' : 'false';
   }
 
-  String _makeStringLiteral(String value) {
+  String _makeStringLiteral(String? value) {
     if (value != null) {
       value = value
           .replaceAll('\\', '\\\\')
@@ -475,7 +484,7 @@ class ConfigGenerator extends source_gen.Generator {
     return buffer.toString();
   }
 
-  Code _codeLiteral(String value) {
+  Code _codeLiteral(String? value) {
     if (value == null) return const Code('null');
 
     return Code(value);

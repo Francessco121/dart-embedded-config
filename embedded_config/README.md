@@ -25,10 +25,10 @@ The embedded_config_annotations package should be added as a normal dependency a
 
 ```yaml
 dependencies:
-  embedded_config_annotations: ^0.1.0
+  embedded_config_annotations: ^0.3.0
 
 dev_dependencies:
-  embedded_config: ^0.1.0
+  embedded_config: ^0.3.0
 ```
 
 The build_runner package should also be added as a dev dependency to your application.
@@ -55,14 +55,15 @@ abstract class AppConfig {
 }
 ```
 
-Getter return types can be any of the following:
+Getter return types can be any of the following (including nullable versions of each):
 - `String`
 - `int`
 - `double`
 - `num`
 - `bool`
+- `dynamic`
 - `List` (or `List<T>`)
-- `Map` (or `Map<K, V>`)
+- `Map` (or `Map<String, V>`)
 - [Other annotated embedded config classes in the same library](#complex-configuration-models)
 
 > **Note:** When the element type of a list is explicitly `String` or the value type of a map is explicitly `String`, values from config sources will automatically be converted to strings.
@@ -116,6 +117,8 @@ class _$AppConfigEmbedded extends AppConfig {
   final apiUrl = '/api';
 }
 ```
+
+> **Note:** Non-nullable getters will result in that property being required. If none of the provided configuration sources define a non-null value for a non-nullable getter, then an error will be thrown at build-time.
 
 The annotated `AppConfig` class can then expose the generated class in any way you choose. Since embedded configs are marked with `const` constructors, one nice way is to expose it as a `static const` singleton value:
 

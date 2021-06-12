@@ -1,10 +1,10 @@
 name: embedded_config_annotations
-description: Annotations to configure code generation for the `embedded_config` package.
-version: 0.2.0
+description: Annotations to configure code generation for the embedded_config package.
+version: 0.3.0
 homepage: https://github.com/Francessco121/dart-embedded-config
 
 environment:
-  sdk: '>=2.0.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dev_dependencies:
-  pedantic: ^1.9.0
+  lints: ^1.0.1

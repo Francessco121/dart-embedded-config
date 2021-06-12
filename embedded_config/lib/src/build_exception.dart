@@ -3,11 +3,11 @@ import 'package:analyzer/dart/element/element.dart';
 class BuildException implements Exception {
   final String message;
 
-  final Element element;
+  final Element? element;
 
   BuildException(this.message, [this.element]);
 
   @override
   String toString() =>
-      element == null ? message : '[${element.displayName}] $message';
+      element == null ? message : '[${element!.displayName}] $message';
 }

@@ -1,14 +1,14 @@
 import 'build_exception.dart';
 
 class KeyConfig {
-  final List<String> sources;
-  final Map inline;
+  final List<String>? sources;
+  final Map? inline;
 
   KeyConfig._(this.sources, this.inline);
 
   factory KeyConfig.fromBuildConfig(dynamic config) {
-    List<String> sources;
-    Map inline;
+    List<String>? sources;
+    Map? inline;
 
     if (config is String) {
       // Specified just a single file source
