@@ -1,6 +1,9 @@
 # embedded_config
 
 A package which allows application configurations to be embedded directly into source code at build-time.
+
+This package aims to solve the problem of needing a different application configuration per build environment (e.g. development vs. production). Using Dart's build system ([build_runner](https://pub.dev/packages/build_runner)), separate build.yaml files can be created per environment in combination with this package to embed different configurations. The required environment for the build can then be chosen using build_runner's `--config` option.
+
 Configuration can come from JSON files, environment variables, and build.yaml files.
 
 ## Contents
@@ -19,7 +22,7 @@ Configuration can come from JSON files, environment variables, and build.yaml fi
 
 ### 1. Installing
 
-This package makes use of [package:build_runner](https://pub.dev/packages/build_runner). To avoid making build_runner a normal dependency, embedded_config has a partner package [embedded_config_annotations](https://pub.dev/packages/embedded_config_annotations). 
+This package makes use of [package:build_runner](https://pub.dev/packages/build_runner). To avoid making build_runner a normal non-dev dependency, embedded_config has a partner package [embedded_config_annotations](https://pub.dev/packages/embedded_config_annotations). 
 
 The embedded_config_annotations package should be added as a normal dependency and embedded_config should be added as a dev dependency:
 

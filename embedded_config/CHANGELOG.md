@@ -1,3 +1,6 @@
+## v0.3.0+1
+- **No code changes**, added a description for what purpose this package is intended for.
+
 ## v0.3.0
 - **(breaking change)** Migrated to null-safety.
 - **(breaking change)** When `null` is provided for a config key that maps to a config class, that property will be set to `null` now instead of an instance of that class with all `null` properties (Note: This does not happen for non-nullable properties as those are considered 'required' in this release).

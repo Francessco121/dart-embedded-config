@@ -1,3 +1,6 @@
+## v0.3.0+1
+- **No code changes**, added a description for what purpose this package is intended for.
+
 ## v0.3.0
 - **(breaking change)** Migrated to null-safety.
 - Add the `@EmbeddedPropertyName` annotation to let a key other than the property name in Dart to be used for that property's configuration key.
