@@ -31,7 +31,7 @@ dependencies:
   embedded_config_annotations: ^0.3.0
 
 dev_dependencies:
-  embedded_config: ^0.3.0
+  embedded_config: ^0.4.0
 ```
 
 The build_runner package should also be added as a dev dependency to your application.
