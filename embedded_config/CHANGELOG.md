@@ -1,3 +1,6 @@
+## v0.4.0
+- Updated `analyzer` dependency to `>=2.0.0 <4.0.0` (was `^1.0.0`).
+
 ## v0.3.0+1
 - **No code changes**, added a description for what purpose this package is intended for.
 
