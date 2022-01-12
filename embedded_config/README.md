@@ -90,7 +90,7 @@ Getter return types can be any of the following (including nullable versions of 
 
 ### 3. Map configuration source(s)
 
-Next, we need the actual configuration. Configuration can be specified in two places: JSON files in your application package and build.yaml files. Both of these sources can additionally [make use of environment variables](environment-variables).
+Next, we need the actual configuration. Configuration can be specified in two places: JSON files in your application package and build.yaml files. Both of these sources can additionally [make use of environment variables](#environment-variables).
 
 Configuration sources are mapped to annotated classes inside of your application's build.yaml files. This allows you to swap out configuration values for different builds.
 
