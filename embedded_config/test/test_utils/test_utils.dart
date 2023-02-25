@@ -64,19 +64,19 @@ Future<void> testGenerator(
 
 ClassDeclaration? getClass(CompilationUnit unit, String name) {
   return unit.declarations
-          .firstWhereOrNull((d) => d is ClassDeclaration && d.name.name == name)
+          .firstWhereOrNull((d) => d is ClassDeclaration && d.name.lexeme == name)
       as ClassDeclaration?;
 }
 
 Matcher hasClass(String name) {
   return contains(
-      isA<ClassDeclaration>().having((d) => d.name.name, 'name', equals(name)));
+      isA<ClassDeclaration>().having((d) => d.name.lexeme, 'name', equals(name)));
 }
 
 void testField(ClassDeclaration $class, String name, dynamic value) {
   // Get field
   final ClassMember? member = $class.members.firstWhereOrNull((d) =>
-      d is FieldDeclaration && d.fields.variables.first.name.name == name);
+      d is FieldDeclaration && d.fields.variables.first.name.lexeme == name);
 
   expect(member, isNotNull, reason: 'Class has no field named $name');
 
@@ -94,7 +94,7 @@ void testFieldClassName(
     ClassDeclaration $class, String name, String className) {
   // Get field
   final ClassMember? member = $class.members.firstWhereOrNull((d) =>
-      d is FieldDeclaration && d.fields.variables.first.name.name == name);
+      d is FieldDeclaration && d.fields.variables.first.name.lexeme == name);
 
   expect(member, isNotNull, reason: 'Class has no field named $name');
 
@@ -109,7 +109,7 @@ void testFieldClassName(
 
   final creationExp = field.initializer as InstanceCreationExpression;
 
-  expect(creationExp.constructorName.type2.name.name, equals(className));
+  expect(creationExp.constructorName.type.name.name, equals(className));
 }
 
 void _testExpression(Expression exp, dynamic value) {

@@ -1,3 +1,7 @@
+## v0.4.1
+- Updated `analyzer` dependency to `>=5.2.0 <6.0.0` (was `>=2.0.0 <4.0.0`).
+- Updated `source_gen` dependency to `^1.2.0` (was `^1.0.0`).
+
 ## v0.4.0
 - Updated `analyzer` dependency to `>=2.0.0 <4.0.0` (was `^1.0.0`).
 

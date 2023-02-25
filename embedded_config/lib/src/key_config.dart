@@ -31,11 +31,11 @@ class KeyConfig {
       }
 
       // Read the inline config
-      final _inline = config['inline'];
+      final inlineConfig = config['inline'];
 
-      if (_inline != null) {
-        if (_inline is Map) {
-          inline = _inline;
+      if (inlineConfig != null) {
+        if (inlineConfig is Map) {
+          inline = inlineConfig;
         } else {
           throw BuildException(
               'Embedded config key inline source must be a map.');

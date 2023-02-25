@@ -55,7 +55,7 @@ class ConfigGenerator extends source_gen.Generator {
 
       if (classElement is! ClassElement ||
           !classElement.isAbstract ||
-          classElement.isEnum) {
+          classElement is EnumElement) {
         throw BuildException(
             'Only abstract classes may be annotated with @EmbeddedConfig!',
             classElement);
