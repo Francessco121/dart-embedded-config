@@ -159,10 +159,13 @@ class ConfigGenerator extends source_gen.Generator {
 
         Map<String, dynamic> fileConfig;
 
-        if (filePath.trimRight().endsWith('.json')) {
+        final filePathTrimmed = filePath.trimRight();
+
+        if (filePathTrimmed.endsWith('.json')) {
           fileConfig = json.decode(assetContents);
-        } else if (filePath.trimRight().endsWith('.yaml') || filePath.trimRight().endsWith('.yml')) {
-          fileConfig = loadYaml(assetContents).cast<String, Object>();
+        } else if (filePathTrimmed.endsWith('.yaml') ||
+            filePathTrimmed.endsWith('.yml')) {
+          fileConfig = _assertYamlKeys(loadYaml(assetContents), classElement);
         } else {
           throw BuildException(
               'Embedded config file sources must be either JSON or YAML documents.',
@@ -186,7 +189,12 @@ class ConfigGenerator extends source_gen.Generator {
           if (config[key] == null) {
             return {};
           } else {
-            config = config[key];
+            final subConfig = config[key];
+            if (subConfig is YamlMap) {
+              config = _assertYamlKeys(subConfig, classElement);
+            } else {
+              config = config[key];
+            }
           }
         } else {
           throw BuildException(
@@ -198,6 +206,18 @@ class ConfigGenerator extends source_gen.Generator {
     }
 
     return config;
+  }
+
+  /// Asserts that all YAML keys are strings.
+  Map<String, dynamic> _assertYamlKeys(YamlMap map, ClassElement element) {
+    for (final key in map.keys) {
+      if (key is! String) {
+        throw BuildException(
+            'YAML key $key (${key.runtimeType}) must be a string.', element);
+      }
+    }
+
+    return map.cast<String, dynamic>();
   }
 
   /// Merges the [top] map on top of the [base] map, overwriting values at the
@@ -465,8 +485,8 @@ class ConfigGenerator extends source_gen.Generator {
       value = value
           .replaceAll('\\', '\\\\')
           .replaceAll("'", "\\'")
-          .replaceAll("\n", "\\n")
-          .replaceAll("\r", "\\r")
+          .replaceAll('\n', '\\n')
+          .replaceAll('\r', '\\r')
           .replaceAll(r'$', '\\\$');
     }
 

@@ -63,14 +63,14 @@ Future<void> testGenerator(
 }
 
 ClassDeclaration? getClass(CompilationUnit unit, String name) {
-  return unit.declarations
-          .firstWhereOrNull((d) => d is ClassDeclaration && d.name.lexeme == name)
+  return unit.declarations.firstWhereOrNull(
+          (d) => d is ClassDeclaration && d.name.lexeme == name)
       as ClassDeclaration?;
 }
 
 Matcher hasClass(String name) {
-  return contains(
-      isA<ClassDeclaration>().having((d) => d.name.lexeme, 'name', equals(name)));
+  return contains(isA<ClassDeclaration>()
+      .having((d) => d.name.lexeme, 'name', equals(name)));
 }
 
 void testField(ClassDeclaration $class, String name, dynamic value) {

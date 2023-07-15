@@ -11,7 +11,9 @@ void main() {
     group('yaml', () {
       test('basic', () async {
         await testGenerator(config: {
-          'test_config': {'source': ['lib/test_config.yaml']}
+          'test_config': {
+            'source': ['lib/test_config.yaml']
+          }
         }, assets: {
           'a|lib/test_config.yaml': '''
               string: value
@@ -37,9 +39,12 @@ void main() {
           }
         });
       });
+
       test('generates correctly named and typed fields', () async {
         await testGenerator(config: {
-          'test_config': {'source': ['lib/test_config.yaml']}
+          'test_config': {
+            'source': ['lib/test_config.yaml']
+          }
         }, assets: {
           'a|lib/test_config.yaml': '''
               string: value
@@ -148,7 +153,81 @@ void main() {
         });
       });
 
-    });
+      test('handles sub configs', () async {
+        await testGenerator(config: {
+          'test_config': {
+            'source': ['lib/test_config.yaml']
+          }
+        }, assets: {
+          'a|lib/test_config.yaml': '''
+              sub:
+                key: 'value'
+          ''',
+          'a|lib/test.dart': '''
+            import 'package:embedded_config_annotations/embedded_config_annotations.dart';
+            
+            part 'test.embedded.dart';
+
+            @EmbeddedConfig('test_config')
+            abstract class TestConfig {
+              TestSubConfig get sub;
+
+              const TestConfig();
+            }
+
+            @EmbeddedConfig('test_config', path: ['sub'])
+            abstract class TestSubConfig {
+              String get key;
+
+              const TestSubConfig();
+            }
+          '''
+        }, outputs: {
+          'a|lib/test.embedded.dart': (CompilationUnit unit) {
+            expect(unit.declarations, hasClass(r'_$TestConfigEmbedded'));
+            expect(unit.declarations, hasClass(r'_$TestSubConfigEmbedded'));
+
+            final $class = getClass(unit, r'_$TestConfigEmbedded')!;
+            testFieldClassName($class, 'sub', r'_$TestSubConfigEmbedded');
+
+            final subClass = getClass(unit, r'_$TestSubConfigEmbedded')!;
+            testField(subClass, 'key', 'value');
+          }
+        });
+      });
+
+      test('rejects non-string keys', () async {
+        expect(() async {
+          await testGenerator(config: {
+            'test_config': {
+              'source': ['lib/test_config.yaml']
+            }
+          }, assets: {
+            'a|lib/test_config.yaml': '''
+                {foo: 'bar'}: "yay yaml"
+            ''',
+            'a|lib/test.dart': '''
+              import 'package:embedded_config_annotations/embedded_config_annotations.dart';
+              
+              part 'test.embedded.dart';
+
+              @EmbeddedConfig('test_config')
+              abstract class TestConfig {
+                dynamic get unknown;
+
+                const TestConfig();
+              }
+            '''
+          });
+        },
+            throwsA(allOf([
+              isA<BuildException>(),
+              predicate((ex) =>
+                  (ex as BuildException).message.contains('must be a string'))
+            ])));
+      });
+    }); // yaml
+
     test('generates a correctly named class', () async {
       await testGenerator(config: {
         'test_config': {'inline': {}}
