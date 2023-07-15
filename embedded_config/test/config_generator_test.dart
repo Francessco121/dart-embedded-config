@@ -8,6 +8,34 @@ import 'test_utils/test_utils.dart';
 
 void main() {
   group('ConfigGenerator', () {
+    test('yaml', () async {
+      await testGenerator(config: {
+        'test_yaml_config': {'source': ['lib/test_yaml_config.yaml']}
+      }, assets: {
+        'a|lib/test_yaml_config.yaml': '''
+            string: value
+        ''',
+        'a|lib/test.dart': '''
+          import 'package:embedded_config_annotations/embedded_config_annotations.dart';
+
+          part 'test.embedded.dart';
+
+          @EmbeddedConfig('test_yaml_config')
+          abstract class TestYamlConfig {
+            const TestYamlConfig();
+
+            String get string;
+          }
+        '''
+      }, outputs: {
+        'a|lib/test.embedded.dart': (CompilationUnit unit) {
+          expect(unit.declarations, hasClass(r'_$TestYamlConfigEmbedded'));
+          final $class = getClass(unit, r'_$TestYamlConfigEmbedded')!;
+
+          testField($class, 'string', 'value');
+        }
+      });
+    });
     test('generates a correctly named class', () async {
       await testGenerator(config: {
         'test_config': {'inline': {}}
