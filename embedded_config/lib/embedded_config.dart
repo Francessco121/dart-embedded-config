@@ -13,5 +13,9 @@ import 'src/config_generator.dart';
 /// a part file will be emitted with the extension `.embedded.dart`
 /// in the same directory.
 Builder configBuilder(BuilderOptions options) {
-  return PartBuilder([ConfigGenerator(options.config)], '.embedded.dart');
+  return PartBuilder(
+    [ConfigGenerator(options.config)],
+    '.embedded.dart',
+    header: defaultFileHeader + '\n\n' + '// ignore_for_file: unnecessary_const\n',
+  );
 }
