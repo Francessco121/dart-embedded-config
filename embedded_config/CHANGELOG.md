@@ -1,5 +1,6 @@
 ## v0.5.0
 - Added `yaml` dependency and support yaml files
+- make sure newlines are escaped in any values
 
 ## v0.4.1
 - Updated `analyzer` dependency to `>=5.2.0 <6.0.0` (was `>=2.0.0 <4.0.0`).

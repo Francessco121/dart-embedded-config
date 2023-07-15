@@ -43,6 +43,9 @@ void main() {
         }, assets: {
           'a|lib/test_config.yaml': '''
               string: value
+              stringMultiline: |-
+                Multiline
+                String
               doubleWithInt: 0
               numWithInt: 0
               numWithDouble: 0.0
@@ -86,6 +89,7 @@ void main() {
             @EmbeddedConfig('test_config')
             abstract class TestConfig {
               String get string;
+              String get stringMultiline;
               double get doubleWithInt;
               num get numWithInt;
               num get numWithDouble;
@@ -109,6 +113,7 @@ void main() {
             final $class = getClass(unit, r'_$TestConfigEmbedded')!;
 
             testField($class, 'string', 'value');
+            testField($class, 'stringMultiline', 'Multiline\nString');
             testField($class, 'doubleWithInt', 0);
             testField($class, 'numWithInt', 0);
             testField($class, 'numWithDouble', 0.0);

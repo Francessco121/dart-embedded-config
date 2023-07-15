@@ -465,6 +465,8 @@ class ConfigGenerator extends source_gen.Generator {
       value = value
           .replaceAll('\\', '\\\\')
           .replaceAll("'", "\\'")
+          .replaceAll("\n", "\\n")
+          .replaceAll("\r", "\\r")
           .replaceAll(r'$', '\\\$');
     }
 
