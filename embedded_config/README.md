@@ -4,7 +4,7 @@ A package which allows application configurations to be embedded directly into s
 
 This package aims to solve the problem of needing a different application configuration per build environment (e.g. development vs. production). Using Dart's build system ([build_runner](https://pub.dev/packages/build_runner)), separate build.yaml files can be created per environment in combination with this package to embed different configurations. The required environment for the build can then be chosen using build_runner's `--config` option.
 
-Configuration can come from JSON files, environment variables, and build.yaml files.
+Configuration can come from JSON or YAML files, environment variables, and build.yaml files.
 
 ## Contents
 - [Usage](#usage)

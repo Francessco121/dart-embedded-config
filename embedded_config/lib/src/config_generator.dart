@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:yaml/yaml.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -160,9 +161,11 @@ class ConfigGenerator extends source_gen.Generator {
 
         if (filePath.trimRight().endsWith('.json')) {
           fileConfig = json.decode(assetContents);
+        } else if (filePath.trimRight().endsWith('.yaml') || filePath.trimRight().endsWith('.yml')) {
+          fileConfig = loadYaml(assetContents).cast<String, Object>();
         } else {
           throw BuildException(
-              'Embedded config file sources must be JSON documents.',
+              'Embedded config file sources must be either JSON or YAML documents.',
               classElement);
         }
 
@@ -462,6 +465,8 @@ class ConfigGenerator extends source_gen.Generator {
       value = value
           .replaceAll('\\', '\\\\')
           .replaceAll("'", "\\'")
+          .replaceAll("\n", "\\n")
+          .replaceAll("\r", "\\r")
           .replaceAll(r'$', '\\\$');
     }
 
