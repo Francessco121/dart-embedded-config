@@ -377,6 +377,32 @@ class ConfigGenerator extends source_gen.Generator {
             'a config property.');
       }
 
+      for (var constructor in innerClass.constructors) {
+        final parameterNames = constructor.parameters.map((p) => p.name);
+        final hasAllKeys =
+            config[key].keys.toList().every((e) => parameterNames.contains(e));
+        if (hasAllKeys) {
+          Code code;
+          if (config[key] == null) {
+            code = _codeLiteral(null);
+          } else {
+            final parameters = [];
+            for (var subKey in config[key].keys) {
+              parameters.add(
+                  '$subKey: ${_makeLiteral(config[key][subKey]).toString()}');
+            }
+            code = Code(
+                'const ${_generatedClassNameOf(innerClass.name)}(${parameters.join(',')})');
+          }
+          // Add field
+          return Field((f) => f
+            ..annotations.add(refer('override'))
+            ..modifier = FieldModifier.final$
+            ..name = getter.name
+            ..assignment = code);
+        }
+      }
+
       if (!sourceClasses.any((c) => c.element == innerClass)) {
         throw BuildException(
             'Cannot reference a non embedded config class as a config '
