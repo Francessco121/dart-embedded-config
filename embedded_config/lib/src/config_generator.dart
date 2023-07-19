@@ -332,7 +332,7 @@ class ConfigGenerator extends source_gen.Generator {
             _stringTypeChecker.isExactlyType(returnType.typeArguments.first);
       }
 
-      final value = _getList(config, key, forceStrings: forceStrings);
+      final value = _getList(config, key, forceStrings: forceStrings, $const: true);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -349,7 +349,7 @@ class ConfigGenerator extends source_gen.Generator {
             _stringTypeChecker.isExactlyType(returnType.typeArguments[1]);
       }
 
-      final value = _getMap(config, key, forceStrings: forceStrings);
+      final value = _getMap(config, key, forceStrings: forceStrings, $const: true);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -437,26 +437,28 @@ class ConfigGenerator extends source_gen.Generator {
   }
 
   String? _getList(Map<String, dynamic> map, String key,
-      {bool forceStrings = false}) {
+      {bool forceStrings = false, bool $const = false}) {
     final dynamic value = map[key];
 
     if (value == null) return null;
 
     if (value is List) {
-      return _makeListLiteral(value, forceStrings: forceStrings);
+      final str = _makeListLiteral(value, forceStrings: forceStrings);
+      return $const ? 'const $str' : str;
     } else {
       throw BuildException("Config value '$key' must be a list.");
     }
   }
 
   String? _getMap(Map<String, dynamic> map, String key,
-      {bool forceStrings = false}) {
+      {bool forceStrings = false, bool $const = false}) {
     final dynamic value = map[key];
 
     if (value == null) return null;
 
     if (value is Map) {
-      return _makeMapLiteral(value, forceStrings: forceStrings);
+      final str = _makeMapLiteral(value, forceStrings: forceStrings);
+      return $const ? 'const $str' : str;
     } else {
       throw BuildException("Config value '$key' must be a map.");
     }
@@ -495,7 +497,7 @@ class ConfigGenerator extends source_gen.Generator {
 
   String _makeListLiteral(List value, {bool forceStrings = false}) {
     final buffer = StringBuffer();
-    buffer.write('const [');
+    buffer.write('[');
 
     for (var i = 0; i < value.length; i++) {
       if (i > 0) {
@@ -522,7 +524,7 @@ class ConfigGenerator extends source_gen.Generator {
 
   String _makeMapLiteral(Map value, {bool forceStrings = false}) {
     final buffer = StringBuffer();
-    buffer.write('const {');
+    buffer.write('{');
 
     var first = true;
     for (final entry in value.entries) {

@@ -278,6 +278,15 @@ void main() {
             'stringListMap': {
               'key': ['value']
             },
+            'nestedMap': {
+              'foo': {
+                'bar': {
+                  'list': [1, 2, 3]
+                },
+                'test': true
+              },
+              'a': 1.2
+            },
             'untypedMap': {
               'string': 'value',
               'num': 2.4,
@@ -312,6 +321,7 @@ void main() {
             Map<String, num> get numMap;
             Map<String, bool> get boolMap;
             Map<String, List<String>> get stringListMap;
+            Map<String, dynamic> get nestedMap;
             Map get untypedMap;
             dynamic get $dynamic;
 
@@ -348,6 +358,15 @@ void main() {
           testField($class, 'boolMap', {'key': true});
           testField($class, 'stringListMap', {
             'key': ['value']
+          });
+          testField($class, 'nestedMap', {
+            'foo': {
+              'bar': {
+                'list': [1, 2, 3]
+              },
+              'test': true
+            },
+            'a': 1.2
           });
           testField($class, 'untypedMap', {
             'string': 'value',

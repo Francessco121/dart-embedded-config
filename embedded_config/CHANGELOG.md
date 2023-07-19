@@ -1,6 +1,7 @@
 ## v0.5.0
 - Added `yaml` dependency and support yaml files
 - Make sure newlines are escaped in string literals
+- Fix `unnecessary_const` lint in generated files.
 - Updated `analyzer` dependency to `>=5.12.0 <7.0.0` (was `>=5.2.0 <6.0.0`).
 
 ## v0.4.1
