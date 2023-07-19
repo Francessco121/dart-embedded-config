@@ -306,7 +306,7 @@ class ConfigGenerator extends source_gen.Generator {
 
     // Ensure non-null value provided for non-null field
     if (returnType.nullabilitySuffix == NullabilitySuffix.none &&
-        !returnType.isDynamic &&
+        returnType is! DynamicType &&
         config[key] == null) {
       throw BuildException(
           'Must provide a non-null config value for a non-nullable config property.');
@@ -358,7 +358,7 @@ class ConfigGenerator extends source_gen.Generator {
         ..assignment = _codeLiteral(value));
     } else if (_numTypeChecker.isAssignableFromType(returnType) ||
         _boolTypeChecker.isAssignableFromType(returnType) ||
-        returnType.isDynamic) {
+        returnType is DynamicType) {
       // Num, bool, dynamic, num? (note: num? will be dynamic)
       final value = _getLiteral(config, key);
 

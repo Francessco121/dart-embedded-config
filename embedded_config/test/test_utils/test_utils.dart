@@ -109,7 +109,7 @@ void testFieldClassName(
 
   final creationExp = field.initializer as InstanceCreationExpression;
 
-  expect(creationExp.constructorName.type.name.name, equals(className));
+  expect(creationExp.constructorName.type.name2.lexeme, equals(className));
 }
 
 void _testExpression(Expression exp, dynamic value) {
