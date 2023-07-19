@@ -1,6 +1,6 @@
 ## v0.5.0
-- Added `yaml` dependency and support yaml files
-- Make sure newlines are escaped in string literals
+- Added YAML file support (new dependency on `yaml`) (#6).
+- Multiline strings are now correctly escaped (#6).
 - Fix `unnecessary_const` lint in generated files.
 - Updated `analyzer` dependency to `>=5.12.0 <7.0.0` (was `>=5.2.0 <6.0.0`).
 

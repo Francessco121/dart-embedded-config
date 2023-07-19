@@ -332,7 +332,8 @@ class ConfigGenerator extends source_gen.Generator {
             _stringTypeChecker.isExactlyType(returnType.typeArguments.first);
       }
 
-      final value = _getList(config, key, forceStrings: forceStrings, $const: true);
+      final value =
+          _getList(config, key, forceStrings: forceStrings, $const: true);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
@@ -349,7 +350,8 @@ class ConfigGenerator extends source_gen.Generator {
             _stringTypeChecker.isExactlyType(returnType.typeArguments[1]);
       }
 
-      final value = _getMap(config, key, forceStrings: forceStrings, $const: true);
+      final value =
+          _getMap(config, key, forceStrings: forceStrings, $const: true);
 
       return Field((f) => f
         ..annotations.add(refer('override'))
